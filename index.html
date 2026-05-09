@@ -3,192 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 Uwin盃 | Admin Input Mode</title>
+    <title>UWIN ScoreCentral | 2026 Uwin盃</title>
+    <link rel="icon" href="logo.jpg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        body { background-color: #f9fafb; color: #1f2937; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; }
-        .group-container { background-color: #ffffff; border-radius: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #e5e7eb; overflow: hidden; }
-        .uwin-yellow { color: #FFB915; }
-        .uwin-bg-yellow { background-color: #FFB915; }
-        .uwin-teal { color: #009797; } 
-        .uwin-bg-teal { background-color: #009797; }
-        .rank-num { font-family: 'Oswald', sans-serif; font-style: italic; }
-        .lang-active { background-color: #000; color: #fff; }
-        .qualifier-name { font-weight: 800 !important; color: #111111 !important; }
-        .qualifier-pts-a { font-weight: 900 !important; color: #FFB915 !important; }
-        .qualifier-pts-b { font-weight: 900 !important; color: #009797 !important; }
-        .normal-name { font-weight: 500; color: #374151; }
-        .normal-pts { font-weight: 700; color: #1f2937; }
-        .split-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 1024px) { .split-grid { grid-template-columns: 1fr 1fr; gap: 40px; } }
-        /* 控制台輸入框樣式 */
-        .admin-input { width: 45px; text-align: center; font-weight: 900; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px 0; }
-        .admin-input:focus { border-color: #FFB915; outline: none; box-shadow: 0 0 0 2px rgba(255,185,21,0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800;1,900&family=Noto+Sans+TC:wght@500;900&display=swap');
+        
+        body { 
+            background: radial-gradient(circle at 50% 50%, #1A3A7A 0%, #061121 100%);
+            color: #ffffff; 
+            font-family: 'Noto Sans TC', sans-serif;
+            min-height: 100vh;
+        }
+
+        .split-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+        @media (min-width: 1024px) { .split-grid { grid-template-columns: 1fr 1fr; gap: 50px; } }
+
+        .uwin-text-a { color: #FFB915; }
+        .uwin-text-b { color: #009797; }
+        
+        .header-title { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; text-transform: uppercase; }
+        .rule-text { color: rgba(255, 255, 255, 0.5); font-size: 12px; letter-spacing: 1.5px; }
+        .rule-line { border-bottom: 1px solid rgba(255, 255, 255, 0.15); width: 100px; margin: 10px auto; }
+        .advance-text { color: rgba(255, 255, 255, 0.7); font-size: 12px; letter-spacing: 2px; font-weight: 700; }
+
+        .group-header { display: flex; align-items: center; width: 100%; margin-bottom: 20px; }
+        .group-line { flex-grow: 1; height: 1px; background: rgba(255, 255, 255, 0.15); margin-left: 15px; }
+
+        .row-bg { background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .rank-font { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; }
+        .score-font { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; }
+        
+        .tab-btn { padding: 8px 28px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 13px; border: 1px solid rgba(255,255,255,0.1); }
+        .tab-active { background: #ffffff; color: #061121; border-color: #ffffff; }
+        .tab-inactive { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.4); }
+
+        .input-mini { background: rgba(255,255,255,0.1); border-radius: 4px; text-align: center; font-weight: bold; width: 45px; height: 32px; border: 1px solid rgba(255,255,255,0.1); outline: none; color: white; }
+        .input-time { background: rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: bold; color: white; border: 1px solid rgba(255,255,255,0.1); outline: none; }
+        .btn-ctrl { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 4px; font-weight: bold; }
+        input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
 </head>
-<body class="pb-20">
+<body class="pb-24 px-4 md:px-10">
     <div id="app">
-        <div class="fixed top-4 right-4 z-50 flex space-x-1 bg-white/90 backdrop-blur p-1 rounded-full shadow-lg border border-gray-200 text-[10px] font-bold">
-            <button @click="lang = 'zh'" :class="lang === 'zh' ? 'lang-active' : 'text-gray-400'" class="px-4 py-1.5 rounded-full transition-all text-xs">中文</button>
-            <button @click="lang = 'en'" :class="lang === 'en' ? 'lang-active' : 'text-gray-400'" class="px-4 py-1.5 rounded-full transition-all text-xs">EN</button>
-        </div>
-
-        <header class="flex flex-col items-center pt-10 pb-8 bg-white border-b border-gray-100 mb-8 shadow-sm">
-            <img src="logo.jpg" alt="UWIN LOGO" class="w-32 h-auto mb-4">
-            <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-slate-900 px-4 text-center">
-                {{ lang === 'zh' ? '2026 Uwin盃美式躲避球賽' : '2026 Uwin Cup' }}
-            </h1>
-            <p class="text-slate-400 font-bold text-[10px] mt-1 tracking-[0.2em] uppercase italic">Foam Dodgeball Championship</p>
-        </header>
-
-        <main class="max-w-[1440px] mx-auto px-4 lg:px-8">
-            <div class="split-grid">
-                <div>
-                    <div class="flex items-center justify-between mb-4 px-2">
-                        <h2 class="text-2xl font-black italic border-l-4 border-yellow-500 pl-3 uppercase">Group A</h2>
-                        <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">{{ lang === 'zh' ? '戰績排名' : 'RANKINGS' }}</span>
-                    </div>
-                    <div class="group-container">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 border-b border-gray-100 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                <tr>
-                                    <th class="py-5 px-6 text-center w-20">#</th>
-                                    <th class="py-5 px-2">{{ lang === 'zh' ? '隊伍' : 'TEAM' }}</th>
-                                    <th class="py-5 px-2 text-center">{{ lang === 'zh' ? '勝-平-敗' : 'W-D-L' }}</th>
-                                    <th class="py-5 px-8 text-center text-slate-900">{{ lang === 'zh' ? '積分' : 'PTS' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(team, index) in sortedGroup('A')" :key="team.id" class="border-b border-gray-50 hover:bg-yellow-50/20 transition-colors">
-                                    <td class="py-6 px-6 text-center rank-num text-2xl font-black" :class="index < 4 ? 'uwin-yellow' : 'text-slate-300'">{{ index + 1 }}</td>
-                                    <td class="py-6 px-2 text-lg" :class="index < 4 ? 'qualifier-name' : 'normal-name'">{{ team.name }}</td>
-                                    <td class="py-6 px-2 text-center font-bold font-mono text-slate-400 tracking-tighter">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</td>
-                                    <td class="py-6 px-8 text-center italic tracking-tighter text-3xl" :class="index < 4 ? 'qualifier-pts-a' : 'normal-pts'">{{ (team.wins * 3) + (team.draws * 1) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex items-center justify-between mb-4 px-2">
-                        <h2 class="text-2xl font-black italic border-l-4 border-[#009797] pl-3 uppercase">Group B</h2>
-                        <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">{{ lang === 'zh' ? '戰績排名' : 'RANKINGS' }}</span>
-                    </div>
-                    <div class="group-container">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 border-b border-gray-100 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                <tr>
-                                    <th class="py-5 px-6 text-center w-20">#</th>
-                                    <th class="py-5 px-2">{{ lang === 'zh' ? '隊伍' : 'TEAM' }}</th>
-                                    <th class="py-5 px-2 text-center">{{ lang === 'zh' ? '勝-平-敗' : 'W-D-L' }}</th>
-                                    <th class="py-5 px-8 text-center text-slate-900">{{ lang === 'zh' ? '積分' : 'PTS' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(team, index) in sortedGroup('B')" :key="team.id" class="border-b border-gray-50 hover:bg-teal-50/20 transition-colors">
-                                    <td class="py-6 px-6 text-center rank-num text-2xl font-black" :class="index < 4 ? 'uwin-teal' : 'text-slate-300'">{{ index + 1 }}</td>
-                                    <td class="py-6 px-2 text-lg" :class="index < 4 ? 'qualifier-name' : 'normal-name'">{{ team.name }}</td>
-                                    <td class="py-6 px-2 text-center font-bold font-mono text-slate-400 tracking-tighter">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</td>
-                                    <td class="py-6 px-8 text-center italic tracking-tighter text-3xl" :class="index < 4 ? 'qualifier-pts-b' : 'normal-pts'">{{ (team.wins * 3) + (team.draws * 1) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+        
+        <header class="flex flex-col items-center pt-12 pb-8">
+            <img src="logo.jpg" alt="UWIN" class="w-32 h-auto mb-6">
+            <div class="text-center">
+                <h1 class="header-title text-5xl md:text-7xl leading-none italic mb-8">
+                    UWIN CUP <span class="uwin-text-a">2026</span>
+                </h1>
+                <div class="mb-10">
+                    <p class="rule-text uppercase italic">勝：3 分 / 平：1 分 / 敗：0 分</p>
+                    <div class="rule-line"></div>
+                    <p class="advance-text italic uppercase">分組前四名晉級決賽</p>
                 </div>
             </div>
-        </main>
 
-        <div v-if="adminMode" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-            <div class="bg-white rounded-[2rem] max-w-6xl mx-auto p-8 shadow-2xl mt-4">
-                <div class="flex justify-between items-center mb-8 border-b pb-4">
-                    <h3 class="text-2xl font-black italic">ADMIN CONSOLE</h3>
-                    <button @click="adminMode = false" class="uwin-bg-yellow text-black px-10 py-2 rounded-full font-black text-sm hover:scale-105 transition-transform shadow-lg">SAVE & CLOSE</button>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div v-for="team in teams" :key="'admin'+team.id" class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                        <input v-model="team.name" class="font-black text-sm mb-4 w-full bg-white border border-slate-200 px-3 py-2 rounded-lg focus:border-yellow-500 outline-none shadow-sm" placeholder="隊伍名稱">
-                        
-                        <div class="flex justify-between items-center space-x-2">
-                            <div class="flex flex-col items-center">
-                                <span class="text-[9px] font-black mb-1" :class="team.group === 'A' ? 'uwin-yellow' : 'uwin-teal'">勝 WIN</span>
-                                <div class="flex items-center">
-                                    <button @click="team.wins = Math.max(0, team.wins - 1)" class="w-6 h-8 bg-slate-200 rounded-l text-xs font-bold">-</button>
-                                    <input type="number" v-model.number="team.wins" class="admin-input rounded-none">
-                                    <button @click="team.wins++" class="w-6 h-8 bg-slate-200 rounded-r text-xs font-bold">+</button>
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <span class="text-[9px] font-black mb-1 text-slate-400">平 DRAW</span>
-                                <div class="flex items-center">
-                                    <button @click="team.draws = Math.max(0, team.draws - 1)" class="w-6 h-8 bg-slate-200 rounded-l text-xs font-bold">-</button>
-                                    <input type="number" v-model.number="team.draws" class="admin-input rounded-none">
-                                    <button @click="team.draws++" class="w-6 h-8 bg-slate-200 rounded-r text-xs font-bold">+</button>
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <span class="text-[9px] font-black mb-1 text-red-300">敗 LOSS</span>
-                                <div class="flex items-center">
-                                    <button @click="team.losses = Math.max(0, team.losses - 1)" class="w-6 h-8 bg-slate-200 rounded-l text-xs font-bold">-</button>
-                                    <input type="number" v-model.number="team.losses" class="admin-input rounded-none">
-                                    <button @click="team.losses++" class="w-6 h-8 bg-slate-200 rounded-r text-xs font-bold">+</button>
+            <div class="flex space-x-4 mb-6">
+                <button @click="currentTab = 'rank'" :class="currentTab === 'rank' ? 'tab-active' : 'tab-inactive'" class="tab-btn">分組積分榜</button>
+                <button @click="currentTab = 'matches'" :class="currentTab === 'matches' ? 'tab-active' : 'tab-inactive'" class="tab-btn">對戰賽程表</button>
+            </div>
+        </header>
+
+        <main class="max-w-[1440px] mx-auto">
+            <div class="split-grid">
+                <section v-for="group in ['A', 'B']" :key="group">
+                    <div class="group-header">
+                        <h2 class="text-4xl font-black italic uppercase tracking-tighter" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h2>
+                        <div class="group-line"></div>
+                    </div>
+                    
+                    <template v-if="currentTab === 'rank'">
+                        <div class="flex items-center px-4 mb-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
+                            <div class="w-10 text-center">排名</div><div class="flex-grow pl-6">隊伍名稱</div><div class="w-20 text-center">勝-平-敗</div><div class="w-12 text-center">勝局</div><div class="w-12 text-center">敗局</div><div class="w-16 text-center">積分</div>
+                        </div>
+                        <div class="space-y-1">
+                            <div v-for="(team, index) in sortedGroup(group)" :key="team.id" class="flex items-center row-bg px-4 h-[60px] rounded-lg">
+                                <div class="w-10 text-center rank-font text-3xl italic" :class="index < 4 ? (group === 'A' ? 'uwin-text-a' : 'uwin-text-b') : 'text-white/40'">{{ index + 1 }}</div>
+                                <div class="flex-grow flex items-center pl-6 overflow-hidden">
+                                    <span class="text-lg tracking-tight truncate mr-4 font-bold" :class="index < 4 ? 'text-white' : 'text-white/60'">{{ team.name }}</span>
+                                    <div class="ml-auto flex items-center flex-shrink-0 text-white/30 italic font-bold">
+                                        <span class="w-20 text-center text-[10px] font-mono">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</span>
+                                        <span class="w-12 text-center text-[10px] font-mono">{{ team.sw }}</span>
+                                        <span class="w-12 text-center text-[10px] font-mono">{{ team.sl }}</span>
+                                        <div class="w-16 text-center score-font text-3xl italic" :class="index < 4 ? (group === 'A' ? 'uwin-text-a' : 'uwin-text-b') : 'text-white/60'">{{ (team.wins * 3) + (team.draws * 1) }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </template>
+
+                    <template v-else>
+                        <div class="space-y-3">
+                            <div v-for="(match, idx) in matches.filter(m => m.group === group)" :key="idx" class="row-bg p-4 flex items-center justify-between rounded-lg">
+                                <div class="w-1/3 text-right font-bold italic text-base">{{ getTeamName(match.t1Id) }}</div>
+                                <div class="flex flex-col items-center px-4">
+                                    <span class="text-[9px] font-bold text-white/40 mb-1 font-mono">{{ match.time || '--:--' }}</span>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="text-3xl score-font italic" :class="match.score1 > match.score2 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ match.score1 }}</div>
+                                        <div class="text-[8px] font-black text-white/10 italic">VS</div>
+                                        <div class="text-3xl score-font italic" :class="match.score2 > match.score1 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ match.score2 }}</div>
+                                    </div>
+                                </div>
+                                <div class="w-1/3 text-left font-bold italic text-base">{{ getTeamName(match.t2Id) }}</div>
+                            </div>
+                        </div>
+                    </template>
+                </section>
+            </div>
+        </main>
+
+        <div v-if="adminMode" class="fixed inset-0 z-50 bg-[#061121] p-4 md:p-8 overflow-y-auto border-t-8 border-white/20 text-white">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-6">
+                    <h3 class="text-xl font-black italic uppercase">後台分數控制台 (每組 8 隊版)</h3>
+                    <div class="flex space-x-2">
+                        <button @click="autoCalculateAll" class="bg-blue-600 px-6 py-2 rounded-full font-bold text-xs uppercase">同步積分</button>
+                        <button @click="adminMode = false" class="bg-white text-black px-10 py-2 rounded-full font-black text-xs uppercase">關閉</button>
                     </div>
                 </div>
-                <button @click="resetData" class="mt-12 w-full py-4 text-slate-300 text-[10px] hover:text-red-500 font-black tracking-[0.5em] uppercase">RESET ALL DATA</button>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <section v-for="group in ['A', 'B']" :key="'admin-sec-'+group" class="space-y-8">
+                        <h4 class="font-black italic text-2xl" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h4>
+                        <div v-for="team in teams.filter(t => t.group === group)" :key="team.id" class="bg-white/5 p-4 rounded-xl flex flex-col space-y-4">
+                            <input v-model="team.name" class="bg-transparent border-b border-white/10 font-black text-lg outline-none pb-1 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex space-x-3">
+                                    <div v-for="type in ['wins', 'draws', 'losses']" :key="type" class="flex flex-col items-center">
+                                        <span class="text-[8px] font-bold text-gray-500 mb-1 uppercase">{{ type === 'wins' ? '勝' : type === 'draws' ? '平' : '敗' }}</span>
+                                        <div class="flex items-center space-x-1 bg-black/20 rounded p-1">
+                                            <button @click="team[type] = Math.max(0, team[type] - 1)" class="btn-ctrl text-red-500 text-xs">-</button>
+                                            <span class="w-4 text-center font-bold text-xs">{{ team[type] }}</span>
+                                            <button @click="team[type]++" class="btn-ctrl text-yellow-500 text-xs">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2 border-l border-white/10 pl-4">
+                                    <div class="flex flex-col items-center"><span class="text-[8px] text-gray-500 mb-1">勝局</span><input type="number" v-model.number="team.sw" class="input-mini"></div>
+                                    <div class="flex flex-col items-center"><span class="text-[8px] text-gray-500 mb-1">敗局</span><input type="number" v-model.number="team.sl" class="input-mini"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-10 space-y-3">
+                            <p class="text-[10px] font-black text-white/20 uppercase">對戰填寫</p>
+                            <div v-for="(match, mIdx) in matches.filter(m => m.group === group)" :key="'m-edit-'+group+mIdx" class="bg-white/5 p-4 rounded-xl">
+                                <div class="flex items-center justify-between mb-3">
+                                    <input type="time" v-model="match.time" class="input-time">
+                                    <span class="text-[9px] font-bold text-white/10 italic">Match #{{ mIdx + 1 }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold w-1/3 truncate text-right text-gray-400">{{ getTeamName(match.t1Id) }}</span>
+                                    <div class="flex items-center space-x-2 mx-2">
+                                        <input type="number" v-model.number="match.score1" min="0" @input="autoCalculateAll" class="input-mini bg-white/20 text-lg h-10 w-12">
+                                        <span class="text-white/10">:</span>
+                                        <input type="number" v-model.number="match.score2" min="0" @input="autoCalculateAll" class="input-mini bg-white/20 text-lg h-10 w-12">
+                                    </div>
+                                    <span class="text-xs font-bold w-1/3 truncate text-left text-gray-400">{{ getTeamName(match.t2Id) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <button @click="resetData" class="mt-20 w-full py-6 text-white/5 text-[9px] font-black tracking-[1em] hover:text-red-500 uppercase italic">Reset Data</button>
             </div>
         </div>
 
-        <footer @click="clickCount++" class="mt-24 text-center text-slate-300 text-[10px] font-black tracking-[0.5em] cursor-pointer pb-12 uppercase hover:text-slate-500">
-            © 2026 UWIN SPORTS MANAGEMENT SYSTEM
-        </footer>
+        <footer @click="clickCount++" class="mt-32 text-center text-white/10 text-[10px] font-black tracking-[0.5em] cursor-pointer pb-20 uppercase">© 2026 UWIN SCORE MANAGEMENT</footer>
     </div>
 
     <script>
-        const { createApp, ref, computed, watch, onMounted } = Vue;
+        const { createApp, ref, watch } = Vue;
         createApp({
             setup() {
-                const lang = ref(localStorage.getItem('uwin_lang') || 'zh');
+                const currentTab = ref('rank');
                 const adminMode = ref(false);
                 const clickCount = ref(0);
-                const lastUpdated = ref(0);
 
-                const teams = ref(JSON.parse(localStorage.getItem('uwin_final_input_v1')) || 
-                    Array.from({ length: 18 }, (_, i) => ({
-                        id: i + 1,
-                        group: i < 9 ? 'A' : 'B',
-                        name: `Team ${String(i + 1).padStart(2, '0')}`,
-                        wins: 0, draws: 0, losses: 0
-                    }))
-                );
+                // 改為每組 8 隊
+                const teams = ref(JSON.parse(localStorage.getItem('uwin_v22_8teams')) || [
+                    ...Array.from({length:8}, (_,i)=>({id:i+1, group:'A', name:'A'+(i+1), wins:0, draws:0, losses:0, sw:0, sl:0})),
+                    ...Array.from({length:8}, (_,i)=>({id:i+9, group:'B', name:'B'+(i+1), wins:0, draws:0, losses:0, sw:0, sl:0}))
+                ]);
 
-                const sortedGroup = (groupName) => {
-                    return [...teams.value]
-                        .filter(t => t.group === groupName)
-                        .sort((a, b) => {
-                            const scoreA = a.wins * 3 + a.draws;
-                            const scoreB = b.wins * 3 + b.draws;
-                            if (scoreB !== scoreA) return scoreB - scoreA;
-                            return b.wins - a.wins;
-                        });
+                // 8 隊循環賽組合 (每組 28 場)
+                const generateMatches = (group, offset) => {
+                    let m = [];
+                    for(let i=1; i<=8; i++){
+                        for(let j=i+1; j<=8; j++){
+                            m.push({group: group, t1Id: i+offset, t2Id: j+offset, score1: 0, score2: 0, time: ''});
+                        }
+                    }
+                    return m;
                 };
 
-                const resetData = () => { if(confirm('RESET ALL?')) { teams.value.forEach(t => { t.wins=0; t.draws=0; t.losses=0; }); }};
+                const matches = ref(JSON.parse(localStorage.getItem('uwin_v22_8matches')) || [...generateMatches('A', 0), ...generateMatches('B', 8)]);
 
-                watch(lang, (n) => localStorage.setItem('uwin_lang', n));
+                const autoCalculateAll = () => {
+                    teams.value.forEach(t => { t.wins=0; t.draws=0; t.losses=0; t.sw=0; t.sl=0; });
+                    matches.value.forEach(m => {
+                        if (m.score1 === 0 && m.score2 === 0) return;
+                        const t1 = teams.value.find(t => t.id === m.t1Id);
+                        const t2 = teams.value.find(t => t.id === m.t2Id);
+                        if (t1 && t2) {
+                            t1.sw += m.score1; t1.sl += m.score2;
+                            t2.sw += m.score2; t2.sl += m.score1;
+                            if (m.score1 > m.score2) { t1.wins++; t2.losses++; }
+                            else if (m.score2 > m.score1) { t2.wins++; t1.losses++; }
+                            else { t1.draws++; t2.draws++; }
+                        }
+                    });
+                };
+
+                const getTeamName = (id) => {
+                    const team = teams.value.find(t => t.id === id);
+                    return team ? team.name : '??';
+                };
+
+                const sortedGroup = (groupName) => {
+                    return [...teams.value].filter(t => t.group === groupName).sort((a, b) => {
+                        const sA = a.wins * 3 + a.draws; const sB = b.wins * 3 + b.draws;
+                        if (sB !== sA) return sB - sA;
+                        if (b.sw !== a.sw) return b.sw - a.sw;
+                        return a.sl - b.sl;
+                    });
+                };
+
+                const resetData = () => { if(confirm('重設？')) { localStorage.clear(); location.reload(); }};
                 watch(clickCount, (n) => { if (n >= 5) { adminMode.value = true; clickCount.value = 0; }});
-                watch(teams, (n) => localStorage.setItem('uwin_final_input_v1', JSON.stringify(n)), { deep: true });
+                watch(teams, (n) => localStorage.setItem('uwin_v22_8teams', JSON.stringify(n)), { deep: true });
+                watch(matches, (n) => localStorage.setItem('uwin_v22_8matches', JSON.stringify(n)), { deep: true });
 
-                onMounted(() => {
-                    setInterval(() => { lastUpdated.value++; if(lastUpdated.value > 59) lastUpdated.value = 0; }, 1000);
-                });
-
-                return { lang, teams, sortedGroup, adminMode, clickCount, lastUpdated, resetData };
+                return { currentTab, teams, matches, sortedGroup, adminMode, clickCount, resetData, getTeamName, autoCalculateAll };
             }
         }).mount('#app');
     </script>
