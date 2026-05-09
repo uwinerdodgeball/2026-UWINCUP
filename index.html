@@ -2,195 +2,195 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>MY COLLECTION VAULT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 Uwin盃 | Admin Input Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        :root {
-            --neon-blue: #00f3ff;
-            --neon-green: #39ff14;
-            --bg-dark: #0a0a12;
-            --panel-bg: #161625;
-        }
-        body { 
-            background: var(--bg-dark); color: #fff; 
-            font-family: 'Segoe UI', 'MicroSoft JhengHei', sans-serif;
-            margin: 0; padding: 20px;
-        }
-
-        /* 標題與統計 */
-        .header-section { text-align: center; margin-bottom: 30px; }
-        .stats-bar { 
-            display: flex; justify-content: center; gap: 40px; 
-            color: var(--neon-blue); font-family: monospace; font-size: 18px;
-            background: rgba(0, 243, 255, 0.1); padding: 10px; border-radius: 5px;
-        }
-
-        /* 輸入面板 */
-        .terminal-upload {
-            max-width: 800px; margin: 0 auto 40px;
-            border: 2px solid var(--neon-blue);
-            padding: 25px; background: rgba(0, 243, 255, 0.05);
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        }
-
-        .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-size: 12px; color: var(--neon-blue); margin-bottom: 5px; }
-        input, select { background: #000; border: 1px solid #444; color: white; padding: 10px; }
-
-        /* 清單網格 */
-        .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-
-        .item-card {
-            background: var(--panel-bg); border: 1px solid #333;
-            position: relative; transition: 0.3s;
-        }
-        .item-card:hover { border-color: var(--neon-blue); }
-        .item-card img { width: 100%; height: 200px; object-fit: cover; }
-
-        .item-info { padding: 15px; }
-        .item-name { font-size: 20px; font-weight: bold; color: var(--neon-blue); margin-bottom: 10px; }
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #aaa; }
-        
-        .card-controls { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #333; padding-top: 10px; }
-        .btn-edit { background: none; border: 1px solid var(--neon-green); color: var(--neon-green); cursor: pointer; flex: 1; padding: 5px; }
-        .btn-delete { background: none; border: 1px solid #ff4444; color: #ff4444; cursor: pointer; padding: 5px; }
-        
-        .btn-submit { grid-column: span 2; background: var(--neon-blue); color: #000; border: none; padding: 15px; cursor: pointer; font-weight: bold; font-size: 16px; }
-        .size-tag { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--neon-blue); padding: 2px 8px; font-size: 11px; }
+        body { background-color: #f9fafb; color: #1f2937; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; }
+        .group-container { background-color: #ffffff; border-radius: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #e5e7eb; overflow: hidden; }
+        .uwin-yellow { color: #FFB915; }
+        .uwin-bg-yellow { background-color: #FFB915; }
+        .uwin-teal { color: #009797; } 
+        .uwin-bg-teal { background-color: #009797; }
+        .rank-num { font-family: 'Oswald', sans-serif; font-style: italic; }
+        .lang-active { background-color: #000; color: #fff; }
+        .qualifier-name { font-weight: 800 !important; color: #111111 !important; }
+        .qualifier-pts-a { font-weight: 900 !important; color: #FFB915 !important; }
+        .qualifier-pts-b { font-weight: 900 !important; color: #009797 !important; }
+        .normal-name { font-weight: 500; color: #374151; }
+        .normal-pts { font-weight: 700; color: #1f2937; }
+        .split-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 1024px) { .split-grid { grid-template-columns: 1fr 1fr; gap: 40px; } }
+        /* 控制台輸入框樣式 */
+        .admin-input { width: 45px; text-align: center; font-weight: 900; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px 0; }
+        .admin-input:focus { border-color: #FFB915; outline: none; box-shadow: 0 0 0 2px rgba(255,185,21,0.1); }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
 </head>
-<body>
-
-    <div class="header-section">
-        <h1>[ COLLECTION DATABASE ]</h1>
-        <div class="stats-bar">
-            <span>ITEMS: <span id="totalItems">0</span></span>
-            <span>TOTAL VALUE: $<span id="totalValue">0</span></span>
+<body class="pb-20">
+    <div id="app">
+        <div class="fixed top-4 right-4 z-50 flex space-x-1 bg-white/90 backdrop-blur p-1 rounded-full shadow-lg border border-gray-200 text-[10px] font-bold">
+            <button @click="lang = 'zh'" :class="lang === 'zh' ? 'lang-active' : 'text-gray-400'" class="px-4 py-1.5 rounded-full transition-all text-xs">中文</button>
+            <button @click="lang = 'en'" :class="lang === 'en' ? 'lang-active' : 'text-gray-400'" class="px-4 py-1.5 rounded-full transition-all text-xs">EN</button>
         </div>
-    </div>
 
-    <div class="terminal-upload">
-        <div class="input-group">
-            <label>物品名稱 ITEM NAME</label>
-            <input type="text" id="itemName">
-        </div>
-        <div class="input-group">
-            <label>物品體積 SIZE</label>
-            <select id="itemSize">
-                <option value="小型 (S)">小型 (Small)</option>
-                <option value="中型 (M)">中型 (Medium)</option>
-                <option value="大型 (L)">大型 (Large)</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>購買金額 COST</label>
-            <input type="number" id="itemPrice" value="0">
-        </div>
-        <div class="input-group">
-            <label>購買日期 DATE</label>
-            <input type="date" id="itemDate">
-        </div>
-        <div class="input-group" style="grid-column: span 2;">
-            <label>圖片網址 (或上傳後產生) IMAGE URL</label>
-            <input type="file" id="itemImg" accept="image/*">
-        </div>
-        <button class="btn-submit" id="mainBtn" onclick="deployItem()">確認登錄數據</button>
-    </div>
+        <header class="flex flex-col items-center pt-10 pb-8 bg-white border-b border-gray-100 mb-8 shadow-sm">
+            <img src="logo.jpg" alt="UWIN LOGO" class="w-32 h-auto mb-4">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-slate-900 px-4 text-center">
+                {{ lang === 'zh' ? '2026 Uwin盃美式躲避球賽' : '2026 Uwin Cup' }}
+            </h1>
+            <p class="text-slate-400 font-bold text-[10px] mt-1 tracking-[0.2em] uppercase italic">Foam Dodgeball Championship</p>
+        </header>
 
-    <div class="inventory-grid" id="inventoryGrid"></div>
+        <main class="max-w-[1440px] mx-auto px-4 lg:px-8">
+            <div class="split-grid">
+                <div>
+                    <div class="flex items-center justify-between mb-4 px-2">
+                        <h2 class="text-2xl font-black italic border-l-4 border-yellow-500 pl-3 uppercase">Group A</h2>
+                        <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">{{ lang === 'zh' ? '戰績排名' : 'RANKINGS' }}</span>
+                    </div>
+                    <div class="group-container">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b border-gray-100 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                <tr>
+                                    <th class="py-5 px-6 text-center w-20">#</th>
+                                    <th class="py-5 px-2">{{ lang === 'zh' ? '隊伍' : 'TEAM' }}</th>
+                                    <th class="py-5 px-2 text-center">{{ lang === 'zh' ? '勝-平-敗' : 'W-D-L' }}</th>
+                                    <th class="py-5 px-8 text-center text-slate-900">{{ lang === 'zh' ? '積分' : 'PTS' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(team, index) in sortedGroup('A')" :key="team.id" class="border-b border-gray-50 hover:bg-yellow-50/20 transition-colors">
+                                    <td class="py-6 px-6 text-center rank-num text-2xl font-black" :class="index < 4 ? 'uwin-yellow' : 'text-slate-300'">{{ index + 1 }}</td>
+                                    <td class="py-6 px-2 text-lg" :class="index < 4 ? 'qualifier-name' : 'normal-name'">{{ team.name }}</td>
+                                    <td class="py-6 px-2 text-center font-bold font-mono text-slate-400 tracking-tighter">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</td>
+                                    <td class="py-6 px-8 text-center italic tracking-tighter text-3xl" :class="index < 4 ? 'qualifier-pts-a' : 'normal-pts'">{{ (team.wins * 3) + (team.draws * 1) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-    <script>
-        let collections = JSON.parse(localStorage.getItem('myCollections')) || [];
-        let editIndex = null;
+                <div>
+                    <div class="flex items-center justify-between mb-4 px-2">
+                        <h2 class="text-2xl font-black italic border-l-4 border-[#009797] pl-3 uppercase">Group B</h2>
+                        <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">{{ lang === 'zh' ? '戰績排名' : 'RANKINGS' }}</span>
+                    </div>
+                    <div class="group-container">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b border-gray-100 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                <tr>
+                                    <th class="py-5 px-6 text-center w-20">#</th>
+                                    <th class="py-5 px-2">{{ lang === 'zh' ? '隊伍' : 'TEAM' }}</th>
+                                    <th class="py-5 px-2 text-center">{{ lang === 'zh' ? '勝-平-敗' : 'W-D-L' }}</th>
+                                    <th class="py-5 px-8 text-center text-slate-900">{{ lang === 'zh' ? '積分' : 'PTS' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(team, index) in sortedGroup('B')" :key="team.id" class="border-b border-gray-50 hover:bg-teal-50/20 transition-colors">
+                                    <td class="py-6 px-6 text-center rank-num text-2xl font-black" :class="index < 4 ? 'uwin-teal' : 'text-slate-300'">{{ index + 1 }}</td>
+                                    <td class="py-6 px-2 text-lg" :class="index < 4 ? 'qualifier-name' : 'normal-name'">{{ team.name }}</td>
+                                    <td class="py-6 px-2 text-center font-bold font-mono text-slate-400 tracking-tighter">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</td>
+                                    <td class="py-6 px-8 text-center italic tracking-tighter text-3xl" :class="index < 4 ? 'qualifier-pts-b' : 'normal-pts'">{{ (team.wins * 3) + (team.draws * 1) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
 
-        window.onload = renderAll;
-
-        function deployItem() {
-            const name = document.getElementById('itemName').value;
-            const size = document.getElementById('itemSize').value;
-            const price = document.getElementById('itemPrice').value;
-            const date = document.getElementById('itemDate').value;
-            const fileInput = document.getElementById('itemImg');
-
-            if (!name) return alert("名稱為必填！");
-
-            const saveProcess = (imgSrc) => {
-                const itemData = { name, size, price, date, imgSrc };
-                if (editIndex !== null) {
-                    collections[editIndex] = itemData;
-                    editIndex = null;
-                    document.getElementById('mainBtn').innerText = "確認登錄數據";
-                } else {
-                    collections.unshift(itemData);
-                }
-                saveAndRender();
-                clearForm();
-            };
-
-            if (fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => saveProcess(e.target.result);
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                saveProcess(editIndex !== null ? collections[editIndex].imgSrc : "https://via.placeholder.com/300x200?text=NO+IMAGE");
-            }
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('myCollections', JSON.stringify(collections));
-            renderAll();
-        }
-
-        function renderAll() {
-            const grid = document.getElementById('inventoryGrid');
-            grid.innerHTML = '';
-            let totalVal = 0;
-
-            collections.forEach((item, index) => {
-                totalVal += Number(item.price);
-                grid.innerHTML += `
-                    <div class="item-card">
-                        <div class="size-tag">${item.size}</div>
-                        <img src="${item.imgSrc}">
-                        <div class="item-info">
-                            <div class="item-name">${item.name}</div>
-                            <div class="stat-row"><span>金額:</span> <span style="color:#fff">$${Number(item.price).toLocaleString()}</span></div>
-                            <div class="stat-row"><span>日期:</span> <span style="color:#fff">${item.date}</span></div>
-                            <div class="card-controls">
-                                <button class="btn-edit" onclick="startEdit(${index})">EDIT</button>
-                                <button class="btn-delete" onclick="deleteItem(${index})">DEL</button>
+        <div v-if="adminMode" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+            <div class="bg-white rounded-[2rem] max-w-6xl mx-auto p-8 shadow-2xl mt-4">
+                <div class="flex justify-between items-center mb-8 border-b pb-4">
+                    <h3 class="text-2xl font-black italic">ADMIN CONSOLE</h3>
+                    <button @click="adminMode = false" class="uwin-bg-yellow text-black px-10 py-2 rounded-full font-black text-sm hover:scale-105 transition-transform shadow-lg">SAVE & CLOSE</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="team in teams" :key="'admin'+team.id" class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                        <input v-model="team.name" class="font-black text-sm mb-4 w-full bg-white border border-slate-200 px-3 py-2 rounded-lg focus:border-yellow-500 outline-none shadow-sm" placeholder="隊伍名稱">
+                        
+                        <div class="flex justify-between items-center space-x-2">
+                            <div class="flex flex-col items-center">
+                                <span class="text-[9px] font-black mb-1" :class="team.group === 'A' ? 'uwin-yellow' : 'uwin-teal'">勝 WIN</span>
+                                <div class="flex items-center">
+                                    <button @click="team.wins = Math.max(0, team.wins - 1)" class="w-6 h-8 bg-slate-200 rounded-l text-xs font-bold">-</button>
+                                    <input type="number" v-model.number="team.wins" class="admin-input rounded-none">
+                                    <button @click="team.wins++" class="w-6 h-8 bg-slate-200 rounded-r text-xs font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[9px] font-black mb-1 text-slate-400">平 DRAW</span>
+                                <div class="flex items-center">
+                                    <button @click="team.draws = Math.max(0, team.draws - 1)" class="w-6 h-8 bg-slate-200 rounded-l text-xs font-bold">-</button>
+                                    <input type="number" v-model.number="team.draws" class="admin-input rounded-none">
+                                    <button @click="team.draws++" class="w-6 h-8 bg-slate-200 rounded-r text-xs font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[9px] font-black mb-1 text-red-300">敗 LOSS</span>
+                                <div class="flex items-center">
+                                    <button @click="team.losses = Math.max(0, team.losses - 1)" class="w-6 h-8 bg-slate-200 rounded-l text-xs font-bold">-</button>
+                                    <input type="number" v-model.number="team.losses" class="admin-input rounded-none">
+                                    <button @click="team.losses++" class="w-6 h-8 bg-slate-200 rounded-r text-xs font-bold">+</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                `;
-            });
-            document.getElementById('totalItems').innerText = collections.length;
-            document.getElementById('totalValue').innerText = totalVal.toLocaleString();
-        }
+                </div>
+                <button @click="resetData" class="mt-12 w-full py-4 text-slate-300 text-[10px] hover:text-red-500 font-black tracking-[0.5em] uppercase">RESET ALL DATA</button>
+            </div>
+        </div>
 
-        function startEdit(index) {
-            editIndex = index;
-            const item = collections[index];
-            document.getElementById('itemName').value = item.name;
-            document.getElementById('itemPrice').value = item.price;
-            document.getElementById('itemDate').value = item.date;
-            document.getElementById('itemSize').value = item.size;
-            document.getElementById('mainBtn').innerText = "儲存修改 UPDATE";
-            window.scrollTo(0, 0);
-        }
+        <footer @click="clickCount++" class="mt-24 text-center text-slate-300 text-[10px] font-black tracking-[0.5em] cursor-pointer pb-12 uppercase hover:text-slate-500">
+            © 2026 UWIN SPORTS MANAGEMENT SYSTEM
+        </footer>
+    </div>
 
-        function deleteItem(index) {
-            if (confirm("確定要刪除這件寶物嗎？數據將無法復原。")) {
-                collections.splice(index, 1);
-                saveAndRender();
+    <script>
+        const { createApp, ref, computed, watch, onMounted } = Vue;
+        createApp({
+            setup() {
+                const lang = ref(localStorage.getItem('uwin_lang') || 'zh');
+                const adminMode = ref(false);
+                const clickCount = ref(0);
+                const lastUpdated = ref(0);
+
+                const teams = ref(JSON.parse(localStorage.getItem('uwin_final_input_v1')) || 
+                    Array.from({ length: 18 }, (_, i) => ({
+                        id: i + 1,
+                        group: i < 9 ? 'A' : 'B',
+                        name: `Team ${String(i + 1).padStart(2, '0')}`,
+                        wins: 0, draws: 0, losses: 0
+                    }))
+                );
+
+                const sortedGroup = (groupName) => {
+                    return [...teams.value]
+                        .filter(t => t.group === groupName)
+                        .sort((a, b) => {
+                            const scoreA = a.wins * 3 + a.draws;
+                            const scoreB = b.wins * 3 + b.draws;
+                            if (scoreB !== scoreA) return scoreB - scoreA;
+                            return b.wins - a.wins;
+                        });
+                };
+
+                const resetData = () => { if(confirm('RESET ALL?')) { teams.value.forEach(t => { t.wins=0; t.draws=0; t.losses=0; }); }};
+
+                watch(lang, (n) => localStorage.setItem('uwin_lang', n));
+                watch(clickCount, (n) => { if (n >= 5) { adminMode.value = true; clickCount.value = 0; }});
+                watch(teams, (n) => localStorage.setItem('uwin_final_input_v1', JSON.stringify(n)), { deep: true });
+
+                onMounted(() => {
+                    setInterval(() => { lastUpdated.value++; if(lastUpdated.value > 59) lastUpdated.value = 0; }, 1000);
+                });
+
+                return { lang, teams, sortedGroup, adminMode, clickCount, lastUpdated, resetData };
             }
-        }
-
-        function clearForm() {
-            document.getElementById('itemName').value = '';
-            document.getElementById('itemPrice').value = '0';
-            document.getElementById('itemDate').value = '';
-            document.getElementById('itemImg').value = '';
-        }
+        }).mount('#app');
     </script>
 </body>
 </html>
