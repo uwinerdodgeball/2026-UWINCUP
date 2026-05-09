@@ -39,15 +39,19 @@
         .tab-active { background: #ffffff; color: #061121; border-color: #ffffff; }
         .tab-inactive { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.4); }
 
-        .input-mini { background: rgba(255,255,255,0.1); border-radius: 4px; text-align: center; font-weight: bold; width: 45px; height: 32px; border: 1px solid rgba(255,255,255,0.1); outline: none; color: white; }
-        .input-time { background: rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: bold; color: white; border: 1px solid rgba(255,255,255,0.1); outline: none; }
-        .btn-ctrl { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 4px; font-weight: bold; }
+        /* 後台專用樣式 */
+        .admin-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px; transition: border-color 0.2s; }
+        .admin-card:focus-within { border-color: rgba(255, 185, 21, 0.5); }
+        .input-mini { background: rgba(255, 255, 255, 0.1); border-radius: 6px; text-align: center; font-weight: 900; width: 50px; height: 40px; border: 1px solid rgba(255, 255, 255, 0.1); outline: none; color: white; font-size: 18px; }
+        .input-time { background: rgba(255, 255, 255, 0.1); border-radius: 4px; padding: 4px 8px; font-size: 14px; font-weight: bold; color: white; border: 1px solid rgba(255, 255, 255, 0.1); outline: none; cursor: pointer; }
+        .btn-ctrl { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.1); border-radius: 4px; font-weight: bold; }
         input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
 <body class="pb-24 px-4 md:px-10">
     <div id="app">
         
+        <!-- Header -->
         <header class="flex flex-col items-center pt-12 pb-8">
             <img src="logo.jpg" alt="UWIN" class="w-32 h-auto mb-6">
             <div class="text-center">
@@ -75,6 +79,7 @@
                         <div class="group-line"></div>
                     </div>
                     
+                    <!-- 前台：積分榜 -->
                     <template v-if="currentTab === 'rank'">
                         <div class="flex items-center px-4 mb-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
                             <div class="w-10 text-center">排名</div><div class="flex-grow pl-6">隊伍名稱</div><div class="w-20 text-center">勝-平-敗</div><div class="w-12 text-center">勝局</div><div class="w-12 text-center">敗局</div><div class="w-16 text-center">積分</div>
@@ -95,6 +100,7 @@
                         </div>
                     </template>
 
+                    <!-- 前台：賽程表 -->
                     <template v-else>
                         <div class="space-y-3">
                             <div v-for="(match, idx) in matches.filter(m => m.group === group)" :key="idx" class="row-bg p-4 flex items-center justify-between rounded-lg">
@@ -115,60 +121,73 @@
             </div>
         </main>
 
+        <!-- 後台分數控制台 -->
         <div v-if="adminMode" class="fixed inset-0 z-50 bg-[#061121] p-4 md:p-8 overflow-y-auto border-t-8 border-white/20 text-white">
             <div class="max-w-6xl mx-auto">
-                <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-6">
-                    <h3 class="text-xl font-black italic uppercase">後台分數控制台 (每組 8 隊版)</h3>
+                <div class="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
+                    <h3 class="text-2xl font-black italic uppercase tracking-wider">紀錄員後台控制台</h3>
                     <div class="flex space-x-2">
-                        <button @click="autoCalculateAll" class="bg-blue-600 px-6 py-2 rounded-full font-bold text-xs uppercase">同步積分</button>
-                        <button @click="adminMode = false" class="bg-white text-black px-10 py-2 rounded-full font-black text-xs uppercase">關閉</button>
+                        <button @click="adminMode = false" class="bg-white text-black px-12 py-2 rounded-full font-black text-xs uppercase shadow-xl hover:scale-105 transition-all">完成紀錄並關閉</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <section v-for="group in ['A', 'B']" :key="'admin-sec-'+group" class="space-y-8">
-                        <h4 class="font-black italic text-2xl" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h4>
-                        <div v-for="team in teams.filter(t => t.group === group)" :key="team.id" class="bg-white/5 p-4 rounded-xl flex flex-col space-y-4">
-                            <input v-model="team.name" class="bg-transparent border-b border-white/10 font-black text-lg outline-none pb-1 text-white">
-                            <div class="flex items-center justify-between">
-                                <div class="flex space-x-3">
-                                    <div v-for="type in ['wins', 'draws', 'losses']" :key="type" class="flex flex-col items-center">
-                                        <span class="text-[8px] font-bold text-gray-500 mb-1 uppercase">{{ type === 'wins' ? '勝' : type === 'draws' ? '平' : '敗' }}</span>
-                                        <div class="flex items-center space-x-1 bg-black/20 rounded p-1">
-                                            <button @click="team[type] = Math.max(0, team[type] - 1)" class="btn-ctrl text-red-500 text-xs">-</button>
-                                            <span class="w-4 text-center font-bold text-xs">{{ team[type] }}</span>
-                                            <button @click="team[type]++" class="btn-ctrl text-yellow-500 text-xs">+</button>
+                    <section v-for="group in ['A', 'B']" :key="'admin-sec-'+group">
+                        <h4 class="font-black italic text-3xl mb-8" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">GROUP {{ group }} 紀錄區</h4>
+                        
+                        <!-- 隊伍更名與微調 (放置在摺疊區或頂部) -->
+                        <div class="mb-12 space-y-3">
+                            <p class="text-xs font-bold text-white/20 uppercase tracking-widest px-2">隊伍更名與資料修正</p>
+                            <div v-for="team in teams.filter(t => t.group === group)" :key="team.id" class="admin-card flex flex-col space-y-4">
+                                <input v-model="team.name" class="bg-transparent border-b border-white/10 font-black text-lg outline-none pb-2 focus:border-yellow-500 text-white" placeholder="輸入隊伍名稱">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex space-x-4">
+                                        <div v-for="type in ['wins', 'draws', 'losses']" :key="type" class="flex flex-col items-center">
+                                            <span class="text-[9px] font-bold text-gray-500 mb-1">{{ type === 'wins' ? '勝場' : type === 'draws' ? '平場' : '敗場' }}</span>
+                                            <div class="flex items-center space-x-2 bg-black/20 rounded p-1">
+                                                <button @click="team[type] = Math.max(0, team[type] - 1)" class="btn-ctrl text-red-500">-</button>
+                                                <span class="w-4 text-center font-bold text-sm">{{ team[type] }}</span>
+                                                <button @click="team[type]++" class="btn-ctrl text-yellow-500">+</button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="flex space-x-2 border-l border-white/10 pl-4">
-                                    <div class="flex flex-col items-center"><span class="text-[8px] text-gray-500 mb-1">勝局</span><input type="number" v-model.number="team.sw" class="input-mini"></div>
-                                    <div class="flex flex-col items-center"><span class="text-[8px] text-gray-500 mb-1">敗局</span><input type="number" v-model.number="team.sl" class="input-mini"></div>
+                                    <div class="flex space-x-2 border-l border-white/10 pl-4">
+                                        <div class="flex flex-col items-center"><span class="text-[9px] text-gray-500 mb-1">總勝局</span><input type="number" v-model.number="team.sw" class="input-mini"></div>
+                                        <div class="flex flex-col items-center"><span class="text-[9px] text-gray-500 mb-1">總敗局</span><input type="number" v-model.number="team.sl" class="input-mini"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-10 space-y-3">
-                            <p class="text-[10px] font-black text-white/20 uppercase">對戰填寫</p>
-                            <div v-for="(match, mIdx) in matches.filter(m => m.group === group)" :key="'m-edit-'+group+mIdx" class="bg-white/5 p-4 rounded-xl">
-                                <div class="flex items-center justify-between mb-3">
-                                    <input type="time" v-model="match.time" class="input-time">
-                                    <span class="text-[9px] font-bold text-white/10 italic">Match #{{ mIdx + 1 }}</span>
+                        <!-- 賽程紀錄員填寫區 (重點) -->
+                        <div class="space-y-4">
+                            <p class="text-xs font-bold text-white/20 uppercase tracking-widest px-2">賽事比分錄入 (時間點選器在左上角)</p>
+                            <div v-for="(match, mIdx) in matches.filter(m => m.group === group)" :key="'m-edit-'+group+mIdx" class="admin-card">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-[10px] font-bold text-white/40 uppercase tracking-tighter">開賽時間:</span>
+                                        <input type="time" v-model="match.time" class="input-time">
+                                    </div>
+                                    <span class="text-[10px] font-bold text-white/10 italic font-mono uppercase tracking-widest">Match #{{ mIdx + 1 }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold w-1/3 truncate text-right text-gray-400">{{ getTeamName(match.t1Id) }}</span>
-                                    <div class="flex items-center space-x-2 mx-2">
-                                        <input type="number" v-model.number="match.score1" min="0" @input="autoCalculateAll" class="input-mini bg-white/20 text-lg h-10 w-12">
-                                        <span class="text-white/10">:</span>
-                                        <input type="number" v-model.number="match.score2" min="0" @input="autoCalculateAll" class="input-mini bg-white/20 text-lg h-10 w-12">
+                                    <div class="w-1/3 text-right font-black text-sm truncate pr-2">{{ getTeamName(match.t1Id) }}</div>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="number" v-model.number="match.score1" min="0" @input="autoCalculateAll" class="input-mini bg-white/20">
+                                        <span class="text-white/10 font-black">:</span>
+                                        <input type="number" v-model.number="match.score2" min="0" @input="autoCalculateAll" class="input-mini bg-white/20">
                                     </div>
-                                    <span class="text-xs font-bold w-1/3 truncate text-left text-gray-400">{{ getTeamName(match.t2Id) }}</span>
+                                    <div class="w-1/3 text-left font-black text-sm truncate pl-2">{{ getTeamName(match.t2Id) }}</div>
                                 </div>
                             </div>
                         </div>
                     </section>
                 </div>
-                <button @click="resetData" class="mt-20 w-full py-6 text-white/5 text-[9px] font-black tracking-[1em] hover:text-red-500 uppercase italic">Reset Data</button>
+                
+                <!-- 危險操作區 -->
+                <div class="mt-24 pt-12 border-t border-white/5 text-center">
+                    <button @click="resetData" class="px-10 py-4 bg-red-900/20 text-red-500/30 rounded-xl text-[10px] font-black tracking-[0.5em] hover:text-red-500 hover:bg-red-500/10 transition-all uppercase italic">Reset All Tournament Data</button>
+                </div>
             </div>
         </div>
 
@@ -183,13 +202,11 @@
                 const adminMode = ref(false);
                 const clickCount = ref(0);
 
-                // 改為每組 8 隊
-                const teams = ref(JSON.parse(localStorage.getItem('uwin_v22_8teams')) || [
+                const teams = ref(JSON.parse(localStorage.getItem('uwin_v22_final')) || [
                     ...Array.from({length:8}, (_,i)=>({id:i+1, group:'A', name:'A'+(i+1), wins:0, draws:0, losses:0, sw:0, sl:0})),
                     ...Array.from({length:8}, (_,i)=>({id:i+9, group:'B', name:'B'+(i+1), wins:0, draws:0, losses:0, sw:0, sl:0}))
                 ]);
 
-                // 8 隊循環賽組合 (每組 28 場)
                 const generateMatches = (group, offset) => {
                     let m = [];
                     for(let i=1; i<=8; i++){
@@ -200,10 +217,12 @@
                     return m;
                 };
 
-                const matches = ref(JSON.parse(localStorage.getItem('uwin_v22_8matches')) || [...generateMatches('A', 0), ...generateMatches('B', 8)]);
+                const matches = ref(JSON.parse(localStorage.getItem('uwin_v22_matches')) || [...generateMatches('A', 0), ...generateMatches('B', 8)]);
 
                 const autoCalculateAll = () => {
-                    teams.value.forEach(t => { t.wins=0; t.draws=0; t.losses=0; t.sw=0; t.sl=0; });
+                    // 1. 初始化
+                    teams.value.forEach(t => { t.wins = 0; t.draws = 0; t.losses = 0; t.sw = 0; t.sl = 0; });
+                    // 2. 遍歷賽程
                     matches.value.forEach(m => {
                         if (m.score1 === 0 && m.score2 === 0) return;
                         const t1 = teams.value.find(t => t.id === m.t1Id);
@@ -232,10 +251,10 @@
                     });
                 };
 
-                const resetData = () => { if(confirm('重設？')) { localStorage.clear(); location.reload(); }};
+                const resetData = () => { if(confirm('⚠️ 警告：這將會清除所有已記錄的比分與時間！確定重設？')) { localStorage.clear(); location.reload(); }};
                 watch(clickCount, (n) => { if (n >= 5) { adminMode.value = true; clickCount.value = 0; }});
-                watch(teams, (n) => localStorage.setItem('uwin_v22_8teams', JSON.stringify(n)), { deep: true });
-                watch(matches, (n) => localStorage.setItem('uwin_v22_8matches', JSON.stringify(n)), { deep: true });
+                watch(teams, (n) => localStorage.setItem('uwin_v22_final', JSON.stringify(n)), { deep: true });
+                watch(matches, (n) => localStorage.setItem('uwin_v22_matches', JSON.stringify(n)), { deep: true });
 
                 return { currentTab, teams, matches, sortedGroup, adminMode, clickCount, resetData, getTeamName, autoCalculateAll };
             }
