@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>MY COLLECTION VAULT</title>
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-green: #39ff14;
+            --bg-dark: #0a0a12;
+            --panel-bg: #161625;
+        }
+        body { 
+            background: var(--bg-dark); color: #fff; 
+            font-family: 'Segoe UI', 'MicroSoft JhengHei', sans-serif;
+            margin: 0; padding: 20px;
+        }
+
+        /* 標題與統計 */
+        .header-section { text-align: center; margin-bottom: 30px; }
+        .stats-bar { 
+            display: flex; justify-content: center; gap: 40px; 
+            color: var(--neon-blue); font-family: monospace; font-size: 18px;
+            background: rgba(0, 243, 255, 0.1); padding: 10px; border-radius: 5px;
+        }
+
+        /* 輸入面板 */
+        .terminal-upload {
+            max-width: 800px; margin: 0 auto 40px;
+            border: 2px solid var(--neon-blue);
+            padding: 25px; background: rgba(0, 243, 255, 0.05);
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-size: 12px; color: var(--neon-blue); margin-bottom: 5px; }
+        input, select { background: #000; border: 1px solid #444; color: white; padding: 10px; }
+
+        /* 清單網格 */
+        .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+        .item-card {
+            background: var(--panel-bg); border: 1px solid #333;
+            position: relative; transition: 0.3s;
+        }
+        .item-card:hover { border-color: var(--neon-blue); }
+        .item-card img { width: 100%; height: 200px; object-fit: cover; }
+
+        .item-info { padding: 15px; }
+        .item-name { font-size: 20px; font-weight: bold; color: var(--neon-blue); margin-bottom: 10px; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #aaa; }
+        
+        .card-controls { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #333; padding-top: 10px; }
+        .btn-edit { background: none; border: 1px solid var(--neon-green); color: var(--neon-green); cursor: pointer; flex: 1; padding: 5px; }
+        .btn-delete { background: none; border: 1px solid #ff4444; color: #ff4444; cursor: pointer; padding: 5px; }
+        
+        .btn-submit { grid-column: span 2; background: var(--neon-blue); color: #000; border: none; padding: 15px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .size-tag { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--neon-blue); padding: 2px 8px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-section">
+        <h1>[ COLLECTION DATABASE ]</h1>
+        <div class="stats-bar">
+            <span>ITEMS: <span id="totalItems">0</span></span>
+            <span>TOTAL VALUE: $<span id="totalValue">0</span></span>
+        </div>
+    </div>
+
+    <div class="terminal-upload">
+        <div class="input-group">
+            <label>物品名稱 ITEM NAME</label>
+            <input type="text" id="itemName">
+        </div>
+        <div class="input-group">
+            <label>物品體積 SIZE</label>
+            <select id="itemSize">
+                <option value="小型 (S)">小型 (Small)</option>
+                <option value="中型 (M)">中型 (Medium)</option>
+                <option value="大型 (L)">大型 (Large)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>購買金額 COST</label>
+            <input type="number" id="itemPrice" value="0">
+        </div>
+        <div class="input-group">
+            <label>購買日期 DATE</label>
+            <input type="date" id="itemDate">
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+            <label>圖片網址 (或上傳後產生) IMAGE URL</label>
+            <input type="file" id="itemImg" accept="image/*">
+        </div>
+        <button class="btn-submit" id="mainBtn" onclick="deployItem()">確認登錄數據</button>
+    </div>
+
+    <div class="inventory-grid" id="inventoryGrid"></div>
+
+    <script>
+        let collections = JSON.parse(localStorage.getItem('myCollections')) || [];
+        let editIndex = null;
+
+        window.onload = renderAll;
+
+        function deployItem() {
+            const name = document.getElementById('itemName').value;
+            const size = document.getElementById('itemSize').value;
+            const price = document.getElementById('itemPrice').value;
+            const date = document.getElementById('itemDate').value;
+            const fileInput = document.getElementById('itemImg');
+
+            if (!name) return alert("名稱為必填！");
+
+            const saveProcess = (imgSrc) => {
+                const itemData = { name, size, price, date, imgSrc };
+                if (editIndex !== null) {
+                    collections[editIndex] = itemData;
+                    editIndex = null;
+                    document.getElementById('mainBtn').innerText = "確認登錄數據";
+                } else {
+                    collections.unshift(itemData);
+                }
+                saveAndRender();
+                clearForm();
+            };
+
+            if (fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => saveProcess(e.target.result);
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                saveProcess(editIndex !== null ? collections[editIndex].imgSrc : "https://via.placeholder.com/300x200?text=NO+IMAGE");
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('myCollections', JSON.stringify(collections));
+            renderAll();
+        }
+
+        function renderAll() {
+            const grid = document.getElementById('inventoryGrid');
+            grid.innerHTML = '';
+            let totalVal = 0;
+
+            collections.forEach((item, index) => {
+                totalVal += Number(item.price);
+                grid.innerHTML += `
+                    <div class="item-card">
+                        <div class="size-tag">${item.size}</div>
+                        <img src="${item.imgSrc}">
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            <div class="stat-row"><span>金額:</span> <span style="color:#fff">$${Number(item.price).toLocaleString()}</span></div>
+                            <div class="stat-row"><span>日期:</span> <span style="color:#fff">${item.date}</span></div>
+                            <div class="card-controls">
+                                <button class="btn-edit" onclick="startEdit(${index})">EDIT</button>
+                                <button class="btn-delete" onclick="deleteItem(${index})">DEL</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('totalItems').innerText = collections.length;
+            document.getElementById('totalValue').innerText = totalVal.toLocaleString();
+        }
+
+        function startEdit(index) {
+            editIndex = index;
+            const item = collections[index];
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('itemDate').value = item.date;
+            document.getElementById('itemSize').value = item.size;
+            document.getElementById('mainBtn').innerText = "儲存修改 UPDATE";
+            window.scrollTo(0, 0);
+        }
+
+        function deleteItem(index) {
+            if (confirm("確定要刪除這件寶物嗎？數據將無法復原。")) {
+                collections.splice(index, 1);
+                saveAndRender();
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '0';
+            document.getElementById('itemDate').value = '';
+            document.getElementById('itemImg').value = '';
+        }
+    </script>
+</body>
+</html>
