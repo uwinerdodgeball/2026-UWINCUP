@@ -9,62 +9,26 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800;1,900&family=Noto+Sans+TC:wght@500;900&display=swap');
-        
-        body { 
-            background: radial-gradient(circle at 50% 50%, #1A3A7A 0%, #061121 100%);
-            color: #ffffff; 
-            font-family: 'Noto Sans TC', sans-serif;
-            min-height: 100vh;
-        }
-
-        .split-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
-        @media (min-width: 1024px) { .split-grid { grid-template-columns: 1fr 1fr; gap: 50px; } }
-
+        body { background: radial-gradient(circle at 50% 50%, #1A3A7A 0%, #061121 100%); color: #ffffff; font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; }
         .uwin-text-a { color: #FFB915; }
         .uwin-text-b { color: #009797; }
-        
         .header-title { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; text-transform: uppercase; }
-        .rule-text { color: rgba(255, 255, 255, 0.5); font-size: 12px; letter-spacing: 1.5px; }
-        .rule-line { border-bottom: 1px solid rgba(255, 255, 255, 0.15); width: 100px; margin: 10px auto; }
-        .advance-text { color: rgba(255, 255, 255, 0.7); font-size: 12px; letter-spacing: 2px; font-weight: 700; }
-
-        .group-header { display: flex; align-items: center; width: 100%; margin-bottom: 20px; }
-        .group-line { flex-grow: 1; height: 1px; background: rgba(255, 255, 255, 0.15); margin-left: 15px; }
-
         .row-bg { background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-        .rank-font { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; }
         .score-font { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; }
-        
-        .tab-btn { padding: 8px 28px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 13px; border: 1px solid rgba(255,255,255,0.1); }
+        .tab-btn { padding: 8px 24px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 13px; border: 1px solid rgba(255,255,255,0.1); }
         .tab-active { background: #ffffff; color: #061121; border-color: #ffffff; }
         .tab-inactive { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.4); }
-
-        /* 後台專用樣式 */
-        .admin-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px; transition: border-color 0.2s; }
-        .admin-card:focus-within { border-color: rgba(255, 185, 21, 0.5); }
-        .input-mini { background: rgba(255, 255, 255, 0.1); border-radius: 6px; text-align: center; font-weight: 900; width: 50px; height: 40px; border: 1px solid rgba(255, 255, 255, 0.1); outline: none; color: white; font-size: 18px; }
-        .input-time { background: rgba(255, 255, 255, 0.1); border-radius: 4px; padding: 4px 8px; font-size: 14px; font-weight: bold; color: white; border: 1px solid rgba(255, 255, 255, 0.1); outline: none; cursor: pointer; }
-        .btn-ctrl { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.1); border-radius: 4px; font-weight: bold; }
-        input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        /* 後台優化 */
+        .admin-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .input-mini { background: rgba(255, 255, 255, 0.15); border-radius: 8px; text-align: center; font-weight: 900; width: 60px; height: 50px; border: 1px solid rgba(255, 255, 255, 0.2); outline: none; color: white; font-size: 24px; }
+        .admin-team-name { font-size: 1.125rem; font-weight: 900; letter-spacing: -0.01em; }
     </style>
 </head>
 <body class="pb-24 px-4 md:px-10">
     <div id="app">
-        
-        <!-- Header -->
-        <header class="flex flex-col items-center pt-12 pb-8">
+        <header class="flex flex-col items-center pt-12 pb-8 text-center">
             <img src="logo.jpg" alt="UWIN" class="w-32 h-auto mb-6">
-            <div class="text-center">
-                <h1 class="header-title text-5xl md:text-7xl leading-none italic mb-8">
-                    UWIN CUP <span class="uwin-text-a">2026</span>
-                </h1>
-                <div class="mb-10">
-                    <p class="rule-text uppercase italic">勝：3 分 / 平：1 分 / 敗：0 分</p>
-                    <div class="rule-line"></div>
-                    <p class="advance-text italic uppercase">分組前四名晉級決賽</p>
-                </div>
-            </div>
-
+            <h1 class="header-title text-5xl md:text-7xl leading-none italic mb-8">UWIN CUP <span class="uwin-text-a">2026</span></h1>
             <div class="flex space-x-4 mb-6">
                 <button @click="currentTab = 'rank'" :class="currentTab === 'rank' ? 'tab-active' : 'tab-inactive'" class="tab-btn">分組積分榜</button>
                 <button @click="currentTab = 'matches'" :class="currentTab === 'matches' ? 'tab-active' : 'tab-inactive'" class="tab-btn">對戰賽程表</button>
@@ -72,126 +36,80 @@
         </header>
 
         <main class="max-w-[1440px] mx-auto">
-            <div class="split-grid">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <section v-for="group in ['A', 'B']" :key="group">
-                    <div class="group-header">
-                        <h2 class="text-4xl font-black italic uppercase tracking-tighter" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h2>
-                        <div class="group-line"></div>
+                    <h2 class="text-4xl font-black italic uppercase mb-6" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h2>
+                    <div v-if="currentTab === 'rank'" class="space-y-1">
+                        <div class="flex px-4 text-[10px] font-black text-white/30 uppercase mb-2">
+                            <div class="w-10">排名</div><div class="flex-grow pl-6">隊伍</div><div class="w-20 text-center">勝-平-敗</div><div class="w-12 text-center">勝局</div><div class="w-12 text-center">敗局</div><div class="w-16 text-center">積分</div>
+                        </div>
+                        <div v-for="(team, index) in sortedGroup(group)" :key="team.id" class="flex items-center row-bg px-4 h-[60px] rounded-lg">
+                            <div class="w-10 text-center font-black text-3xl italic" :class="index < 4 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ index + 1 }}</div>
+                            <div class="flex-grow flex items-center pl-6">
+                                <span class="text-lg font-bold" :class="index < 4 ? 'text-white' : 'text-white/40'">{{ team.name }}</span>
+                                <div class="ml-auto flex items-center text-white/30 italic font-bold">
+                                    <span class="w-20 text-center text-[10px] font-mono">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</span>
+                                    <span class="w-12 text-center text-[10px] font-mono">{{ team.sw }}</span>
+                                    <span class="w-12 text-center text-[10px] font-mono">{{ team.sl }}</span>
+                                    <div class="w-16 text-center score-font text-3xl" :class="index < 4 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ team.wins*3 + team.draws }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <!-- 前台：積分榜 -->
-                    <template v-if="currentTab === 'rank'">
-                        <div class="flex items-center px-4 mb-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
-                            <div class="w-10 text-center">排名</div><div class="flex-grow pl-6">隊伍名稱</div><div class="w-20 text-center">勝-平-敗</div><div class="w-12 text-center">勝局</div><div class="w-12 text-center">敗局</div><div class="w-16 text-center">積分</div>
-                        </div>
-                        <div class="space-y-1">
-                            <div v-for="(team, index) in sortedGroup(group)" :key="team.id" class="flex items-center row-bg px-4 h-[60px] rounded-lg">
-                                <div class="w-10 text-center rank-font text-3xl italic" :class="index < 4 ? (group === 'A' ? 'uwin-text-a' : 'uwin-text-b') : 'text-white/40'">{{ index + 1 }}</div>
-                                <div class="flex-grow flex items-center pl-6 overflow-hidden">
-                                    <span class="text-lg tracking-tight truncate mr-4 font-bold" :class="index < 4 ? 'text-white' : 'text-white/60'">{{ team.name }}</span>
-                                    <div class="ml-auto flex items-center flex-shrink-0 text-white/30 italic font-bold">
-                                        <span class="w-20 text-center text-[10px] font-mono">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</span>
-                                        <span class="w-12 text-center text-[10px] font-mono">{{ team.sw }}</span>
-                                        <span class="w-12 text-center text-[10px] font-mono">{{ team.sl }}</span>
-                                        <div class="w-16 text-center score-font text-3xl italic" :class="index < 4 ? (group === 'A' ? 'uwin-text-a' : 'uwin-text-b') : 'text-white/60'">{{ (team.wins * 3) + (team.draws * 1) }}</div>
-                                    </div>
+                    <div v-else class="space-y-3">
+                        <div v-for="match in matches.filter(m => m.group === group)" :key="match.id" class="row-bg p-4 flex items-center justify-between rounded-lg">
+                            <div class="w-1/3 text-right font-bold text-sm">{{ getTeamName(match.t1Id) }}</div>
+                            <div class="flex flex-col items-center px-4">
+                                <span class="text-[8px] font-bold text-white/30 mb-1">{{ match.day }} {{ match.time }}</span>
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-3xl score-font italic" :class="match.score1 > match.score2 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score1 }}</div>
+                                    <div class="text-[8px] text-white/5 font-black italic">VS</div>
+                                    <div class="text-3xl score-font italic" :class="match.score2 > match.score1 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score2 }}</div>
                                 </div>
                             </div>
+                            <div class="w-1/3 text-left font-bold text-sm">{{ getTeamName(match.t2Id) }}</div>
                         </div>
-                    </template>
-
-                    <!-- 前台：賽程表 -->
-                    <template v-else>
-                        <div class="space-y-3">
-                            <div v-for="(match, idx) in matches.filter(m => m.group === group)" :key="idx" class="row-bg p-4 flex items-center justify-between rounded-lg">
-                                <div class="w-1/3 text-right font-bold italic text-base">{{ getTeamName(match.t1Id) }}</div>
-                                <div class="flex flex-col items-center px-4">
-                                    <span class="text-[9px] font-bold text-white/40 mb-1 font-mono">{{ match.time || '--:--' }}</span>
-                                    <div class="flex items-center space-x-3">
-                                        <div class="text-3xl score-font italic" :class="match.score1 > match.score2 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ match.score1 }}</div>
-                                        <div class="text-[8px] font-black text-white/10 italic">VS</div>
-                                        <div class="text-3xl score-font italic" :class="match.score2 > match.score1 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ match.score2 }}</div>
-                                    </div>
-                                </div>
-                                <div class="w-1/3 text-left font-bold italic text-base">{{ getTeamName(match.t2Id) }}</div>
-                            </div>
-                        </div>
-                    </template>
+                    </div>
                 </section>
             </div>
         </main>
 
-        <!-- 後台分數控制台 -->
-        <div v-if="adminMode" class="fixed inset-0 z-50 bg-[#061121] p-4 md:p-8 overflow-y-auto border-t-8 border-white/20 text-white">
+        <div v-if="adminMode" class="fixed inset-0 z-50 bg-[#061121] overflow-y-auto p-4 md:p-8 border-t-8 border-white/20">
             <div class="max-w-6xl mx-auto">
-                <div class="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
-                    <h3 class="text-2xl font-black italic uppercase tracking-wider">紀錄員後台控制台</h3>
-                    <div class="flex space-x-2">
-                        <button @click="adminMode = false" class="bg-white text-black px-12 py-2 rounded-full font-black text-xs uppercase shadow-xl hover:scale-105 transition-all">完成紀錄並關閉</button>
+                <div class="flex flex-col md:flex-row justify-between items-center mb-12 border-b border-white/10 pb-6 gap-6">
+                    <h3 class="text-2xl font-black italic uppercase tracking-wider">正式賽務錄入</h3>
+                    <div class="flex bg-white/5 p-1 rounded-full">
+                        <button v-for="d in ['5/16 (六)', '5/17 (日)']" @click="adminDay = d" :class="adminDay === d ? 'bg-white text-black' : 'text-white/50'" class="px-8 py-2 rounded-full text-sm font-black transition-all uppercase">DAY {{ d.includes('16') ? '1' : '2' }}</button>
                     </div>
+                    <button @click="adminMode = false" class="bg-blue-600 text-white px-10 py-3 rounded-full font-black text-xs uppercase shadow-2xl">存檔關閉</button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <section v-for="group in ['A', 'B']" :key="'admin-sec-'+group">
-                        <h4 class="font-black italic text-3xl mb-8" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">GROUP {{ group }} 紀錄區</h4>
-                        
-                        <!-- 隊伍更名與微調 (放置在摺疊區或頂部) -->
-                        <div class="mb-12 space-y-3">
-                            <p class="text-xs font-bold text-white/20 uppercase tracking-widest px-2">隊伍更名與資料修正</p>
-                            <div v-for="team in teams.filter(t => t.group === group)" :key="team.id" class="admin-card flex flex-col space-y-4">
-                                <input v-model="team.name" class="bg-transparent border-b border-white/10 font-black text-lg outline-none pb-2 focus:border-yellow-500 text-white" placeholder="輸入隊伍名稱">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex space-x-4">
-                                        <div v-for="type in ['wins', 'draws', 'losses']" :key="type" class="flex flex-col items-center">
-                                            <span class="text-[9px] font-bold text-gray-500 mb-1">{{ type === 'wins' ? '勝場' : type === 'draws' ? '平場' : '敗場' }}</span>
-                                            <div class="flex items-center space-x-2 bg-black/20 rounded p-1">
-                                                <button @click="team[type] = Math.max(0, team[type] - 1)" class="btn-ctrl text-red-500">-</button>
-                                                <span class="w-4 text-center font-bold text-sm">{{ team[type] }}</span>
-                                                <button @click="team[type]++" class="btn-ctrl text-yellow-500">+</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex space-x-2 border-l border-white/10 pl-4">
-                                        <div class="flex flex-col items-center"><span class="text-[9px] text-gray-500 mb-1">總勝局</span><input type="number" v-model.number="team.sw" class="input-mini"></div>
-                                        <div class="flex flex-col items-center"><span class="text-[9px] text-gray-500 mb-1">總敗局</span><input type="number" v-model.number="team.sl" class="input-mini"></div>
-                                    </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div v-for="court in ['A', 'B']" :key="court">
+                        <div class="flex items-center mb-8">
+                            <span class="bg-white text-black font-black px-4 py-1 rounded italic text-lg mr-4 uppercase">場地 {{ court }}</span>
+                            <span class="text-white/20 font-black italic uppercase tracking-widest">{{ adminDay }}</span>
+                        </div>
+                        <div v-for="m in matches.filter(match => match.day === adminDay && match.court === court)" :key="m.id" class="admin-card">
+                            <div class="flex justify-between mb-4 text-[10px] font-black text-white/20 uppercase italic tracking-widest">
+                                <span>{{ m.time }}開賽</span>
+                                <span>Group {{ m.group }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="w-1/3 text-right admin-team-name truncate pr-4 text-white">{{ getTeamName(m.t1Id) }}</div>
+                                <div class="flex items-center space-x-4">
+                                    <input type="number" v-model.number="m.score1" min="0" @input="autoCalculateAll" class="input-mini">
+                                    <span class="text-white/10 font-black text-xl">:</span>
+                                    <input type="number" v-model.number="m.score2" min="0" @input="autoCalculateAll" class="input-mini">
                                 </div>
+                                <div class="w-1/3 text-left admin-team-name truncate pl-4 text-white">{{ getTeamName(m.t2Id) }}</div>
                             </div>
                         </div>
-
-                        <!-- 賽程紀錄員填寫區 (重點) -->
-                        <div class="space-y-4">
-                            <p class="text-xs font-bold text-white/20 uppercase tracking-widest px-2">賽事比分錄入 (時間點選器在左上角)</p>
-                            <div v-for="(match, mIdx) in matches.filter(m => m.group === group)" :key="'m-edit-'+group+mIdx" class="admin-card">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="text-[10px] font-bold text-white/40 uppercase tracking-tighter">開賽時間:</span>
-                                        <input type="time" v-model="match.time" class="input-time">
-                                    </div>
-                                    <span class="text-[10px] font-bold text-white/10 italic font-mono uppercase tracking-widest">Match #{{ mIdx + 1 }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <div class="w-1/3 text-right font-black text-sm truncate pr-2">{{ getTeamName(match.t1Id) }}</div>
-                                    <div class="flex items-center space-x-3">
-                                        <input type="number" v-model.number="match.score1" min="0" @input="autoCalculateAll" class="input-mini bg-white/20">
-                                        <span class="text-white/10 font-black">:</span>
-                                        <input type="number" v-model.number="match.score2" min="0" @input="autoCalculateAll" class="input-mini bg-white/20">
-                                    </div>
-                                    <div class="w-1/3 text-left font-black text-sm truncate pl-2">{{ getTeamName(match.t2Id) }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-                
-                <!-- 危險操作區 -->
-                <div class="mt-24 pt-12 border-t border-white/5 text-center">
-                    <button @click="resetData" class="px-10 py-4 bg-red-900/20 text-red-500/30 rounded-xl text-[10px] font-black tracking-[0.5em] hover:text-red-500 hover:bg-red-500/10 transition-all uppercase italic">Reset All Tournament Data</button>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <footer @click="clickCount++" class="mt-32 text-center text-white/10 text-[10px] font-black tracking-[0.5em] cursor-pointer pb-20 uppercase">© 2026 UWIN SCORE MANAGEMENT</footer>
+        <footer @click="clickCount++" class="mt-32 text-center text-white/5 text-[10px] font-black tracking-widest cursor-pointer pb-20 uppercase">© 2026 UWIN SCORE MANAGEMENT</footer>
     </div>
 
     <script>
@@ -200,29 +118,65 @@
             setup() {
                 const currentTab = ref('rank');
                 const adminMode = ref(false);
+                const adminDay = ref('5/16 (六)');
                 const clickCount = ref(0);
 
-                const teams = ref(JSON.parse(localStorage.getItem('uwin_v22_final')) || [
-                    ...Array.from({length:8}, (_,i)=>({id:i+1, group:'A', name:'A'+(i+1), wins:0, draws:0, losses:0, sw:0, sl:0})),
-                    ...Array.from({length:8}, (_,i)=>({id:i+9, group:'B', name:'B'+(i+1), wins:0, draws:0, losses:0, sw:0, sl:0}))
+                const teams = ref(JSON.parse(localStorage.getItem('uwin_v26_teams')) || [
+                    {id:1, group:'A', name:'Zoopernova', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:2, group:'A', name:'芋來芋亮', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:3, group:'A', name:'Nocturne Fox', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:4, group:'A', name:'跨世紀徵才', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:5, group:'A', name:'鬥苗體育A', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:6, group:'A', name:'Henshin', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:7, group:'A', name:'Giants', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:8, group:'A', name:'憨豆寶貝', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:9, group:'B', name:'本意運動傷害防護', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:10, group:'B', name:'Donut', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:11, group:'B', name:'任馬喀波', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:12, group:'B', name:'Typhoon', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:13, group:'B', name:'老油條', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:14, group:'B', name:'鬥苗體育B', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:15, group:'B', name:'SUGAR', wins:0, draws:0, losses:0, sw:0, sl:0},
+                    {id:16, group:'B', name:'Phoenix', wins:0, draws:0, losses:0, sw:0, sl:0}
                 ]);
 
-                const generateMatches = (group, offset) => {
-                    let m = [];
-                    for(let i=1; i<=8; i++){
-                        for(let j=i+1; j<=8; j++){
-                            m.push({group: group, t1Id: i+offset, t2Id: j+offset, score1: 0, score2: 0, time: ''});
-                        }
-                    }
-                    return m;
-                };
+                const rawMatches = [
+                    {d:'5/16 (六)', t:'10:00', c:'A', g:'A', t1:1, t2:8}, {d:'5/16 (六)', t:'10:00', c:'B', g:'B', t1:10, t2:15},
+                    {d:'5/16 (六)', t:'10:20', c:'A', g:'B', t1:9, t2:16}, {d:'5/16 (六)', t:'10:20', c:'B', g:'A', t1:2, t2:7},
+                    {d:'5/16 (六)', t:'10:40', c:'A', g:'B', t1:11, t2:14}, {d:'5/16 (六)', t:'10:40', c:'B', g:'A', t1:3, t2:6},
+                    {d:'5/16 (六)', t:'11:00', c:'A', g:'B', t1:12, t2:13}, {d:'5/16 (六)', t:'11:00', c:'B', g:'A', t1:4, t2:5},
+                    {d:'5/16 (六)', t:'11:20', c:'A', g:'B', t1:9, t2:15}, {d:'5/16 (六)', t:'11:20', c:'B', g:'A', t1:1, t2:7},
+                    {d:'5/16 (六)', t:'11:40', c:'A', g:'B', t1:11, t2:12}, {d:'5/16 (六)', t:'11:40', c:'B', g:'B', t1:16, t2:14},
+                    {d:'5/16 (六)', t:'12:00', c:'A', g:'A', t1:2, t2:5}, {d:'5/16 (六)', t:'12:00', c:'B', g:'B', t1:10, t2:13},
+                    {d:'5/16 (六)', t:'12:20', c:'A', g:'A', t1:3, t2:4}, {d:'5/16 (六)', t:'12:20', c:'B', g:'A', t1:8, t2:6},
+                    {d:'5/16 (六)', t:'12:40', c:'A', g:'B', t1:9, t2:14}, {d:'5/16 (六)', t:'12:40', c:'B', g:'A', t1:7, t2:5},
+                    {d:'5/16 (六)', t:'13:00', c:'A', g:'B', t1:15, t2:13}, {d:'5/16 (六)', t:'13:00', c:'B', g:'A', t1:1, t2:6},
+                    {d:'5/16 (六)', t:'13:20', c:'A', g:'A', t1:8, t2:4}, {d:'5/16 (六)', t:'13:20', c:'B', g:'B', t1:16, t2:12},
+                    {d:'5/16 (六)', t:'13:40', c:'A', g:'A', t1:2, t2:3}, {d:'5/16 (六)', t:'13:40', c:'B', g:'B', t1:10, t2:11},
+                    {d:'5/16 (六)', t:'14:00', c:'A', g:'B', t1:9, t2:13}, {d:'5/16 (六)', t:'14:00', c:'B', g:'A', t1:1, t2:5},
+                    {d:'5/16 (六)', t:'14:20', c:'A', g:'A', t1:6, t2:4}, {d:'5/16 (六)', t:'14:20', c:'B', g:'B', t1:14, t2:12},
+                    {d:'5/16 (六)', t:'14:40', c:'A', g:'A', t1:7, t2:3}, {d:'5/16 (六)', t:'14:40', c:'B', g:'B', t1:15, t2:11},
+                    {d:'5/16 (六)', t:'15:00', c:'A', g:'A', t1:8, t2:2}, {d:'5/16 (六)', t:'15:00', c:'B', g:'A', t1:1, t2:4},
+                    {d:'5/16 (六)', t:'15:20', c:'A', g:'B', t1:16, t2:10}, {d:'5/16 (六)', t:'15:20', c:'B', g:'B', t1:9, t2:12},
+                    {d:'5/16 (六)', t:'15:40', c:'A', g:'B', t1:13, t2:11}, {d:'5/16 (六)', t:'15:40', c:'B', g:'A', t1:5, t2:3},
+                    {d:'5/16 (六)', t:'16:00', c:'A', g:'A', t1:6, t2:2}, {d:'5/16 (六)', t:'16:00', c:'B', g:'B', t1:14, t2:10},
+                    {d:'5/16 (六)', t:'16:20', c:'A', g:'A', t1:7, t2:8}, {d:'5/16 (六)', t:'16:20', c:'B', g:'B', t1:15, t2:16},
+                    {d:'5/16 (六)', t:'16:40', c:'A', g:'B', t1:9, t2:11}, {d:'5/16 (六)', t:'16:40', c:'B', g:'A', t1:1, t2:3},
+                    {d:'5/16 (六)', t:'17:00', c:'A', g:'A', t1:4, t2:2}, {d:'5/16 (六)', t:'17:00', c:'B', g:'B', t1:12, t2:10},
+                    {d:'5/17 (日)', t:'09:20', c:'A', g:'B', t1:13, t2:16}, {d:'5/17 (日)', t:'09:20', c:'B', g:'A', t1:5, t2:8},
+                    {d:'5/17 (日)', t:'09:40', c:'A', g:'B', t1:9, t2:10}, {d:'5/17 (日)', t:'09:40', c:'B', g:'B', t1:14, t2:15},
+                    {d:'5/17 (日)', t:'10:00', c:'A', g:'B', t1:11, t2:16}, {d:'5/17 (日)', t:'10:00', c:'B', g:'A', t1:6, t2:7},
+                    {d:'5/17 (日)', t:'10:20', c:'A', g:'A', t1:3, t2:8}, {d:'5/17 (日)', t:'10:20', c:'B', g:'A', t1:1, t2:2},
+                    {d:'5/17 (日)', t:'10:40', c:'A', g:'A', t1:4, t2:7}, {d:'5/17 (日)', t:'10:40', c:'B', g:'B', t1:12, t2:15},
+                    {d:'5/17 (日)', t:'11:00', c:'A', g:'B', t1:13, t2:14}, {d:'5/17 (日)', t:'11:00', c:'B', g:'A', t1:5, t2:6}
+                ];
 
-                const matches = ref(JSON.parse(localStorage.getItem('uwin_v22_matches')) || [...generateMatches('A', 0), ...generateMatches('B', 8)]);
+                const matches = ref(JSON.parse(localStorage.getItem('uwin_v26_matches')) || rawMatches.map((m, i) => ({
+                    id: i, day: m.d, time: m.t, court: m.c, group: m.g, t1Id: m.t1, t2Id: m.t2, score1: 0, score2: 0
+                })));
 
                 const autoCalculateAll = () => {
-                    // 1. 初始化
-                    teams.value.forEach(t => { t.wins = 0; t.draws = 0; t.losses = 0; t.sw = 0; t.sl = 0; });
-                    // 2. 遍歷賽程
+                    teams.value.forEach(t => { t.wins=0; t.draws=0; t.losses=0; t.sw=0; t.sl=0; });
                     matches.value.forEach(m => {
                         if (m.score1 === 0 && m.score2 === 0) return;
                         const t1 = teams.value.find(t => t.id === m.t1Id);
@@ -237,26 +191,19 @@
                     });
                 };
 
-                const getTeamName = (id) => {
-                    const team = teams.value.find(t => t.id === id);
-                    return team ? team.name : '??';
-                };
+                const getTeamName = (id) => teams.value.find(t => t.id === id)?.name || '??';
+                const sortedGroup = (groupName) => [...teams.value].filter(t => t.group === groupName).sort((a, b) => {
+                    const sA = a.wins * 3 + a.draws; const sB = b.wins * 3 + b.draws;
+                    if (sB !== sA) return sB - sA;
+                    if (b.sw !== a.sw) return b.sw - a.sw;
+                    return a.sl - b.sl;
+                });
 
-                const sortedGroup = (groupName) => {
-                    return [...teams.value].filter(t => t.group === groupName).sort((a, b) => {
-                        const sA = a.wins * 3 + a.draws; const sB = b.wins * 3 + b.draws;
-                        if (sB !== sA) return sB - sA;
-                        if (b.sw !== a.sw) return b.sw - a.sw;
-                        return a.sl - b.sl;
-                    });
-                };
-
-                const resetData = () => { if(confirm('⚠️ 警告：這將會清除所有已記錄的比分與時間！確定重設？')) { localStorage.clear(); location.reload(); }};
                 watch(clickCount, (n) => { if (n >= 5) { adminMode.value = true; clickCount.value = 0; }});
-                watch(teams, (n) => localStorage.setItem('uwin_v22_final', JSON.stringify(n)), { deep: true });
-                watch(matches, (n) => localStorage.setItem('uwin_v22_matches', JSON.stringify(n)), { deep: true });
+                watch(teams, (n) => localStorage.setItem('uwin_v26_teams', JSON.stringify(n)), { deep: true });
+                watch(matches, (n) => localStorage.setItem('uwin_v26_matches', JSON.stringify(n)), { deep: true });
 
-                return { currentTab, teams, matches, sortedGroup, adminMode, clickCount, resetData, getTeamName, autoCalculateAll };
+                return { currentTab, adminDay, teams, matches, sortedGroup, adminMode, clickCount, getTeamName, autoCalculateAll };
             }
         }).mount('#app');
     </script>
