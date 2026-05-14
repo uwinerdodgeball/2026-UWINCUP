@@ -55,7 +55,7 @@
         .group-a-active { background: #FFB915; color: #000; }
         .group-b-active { background: #009797; color: #fff; }
 
-        .match-id-badge { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 14px; font-weight: 900; padding: 2px 8px; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; }
+        .match-id-badge { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 11px; font-weight: 900; padding: 2px 8px; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; }
         .rank-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .rank-min-width { min-width: 480px; }
         .match-time-label { font-size: 13px; font-weight: 900; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 4px; }
@@ -85,9 +85,10 @@
                 資料最後更新時間: {{ lastUpdated }}
             </div>
 
-            <div class="flex space-x-4 mb-6">
+            <div class="flex flex-wrap justify-center gap-2 mb-6">
                 <button @click="currentTab = 'rank'" :class="currentTab === 'rank' ? 'tab-active' : 'tab-inactive'" class="tab-btn">分組積分榜</button>
                 <button @click="currentTab = 'matches'" :class="currentTab === 'matches' ? 'tab-active' : 'tab-inactive'" class="tab-btn">賽程表</button>
+                <button @click="currentTab = 'playoff'" :class="currentTab === 'playoff' ? 'tab-active' : 'tab-inactive'" class="tab-btn">晉級賽</button>
             </div>
 
             <div v-if="currentTab === 'matches'" class="flex space-x-3 mb-6 bg-black/20 p-1.5 rounded-lg border border-white/5">
@@ -151,6 +152,40 @@
                         <div class="w-1/3 text-center px-2"><div class="text-base md:text-2xl font-black leading-tight" :class="selectedTeam && String(match.t2Id) === selectedTeam ? 'team-underline' : ''">{{ getTeamName(match.t2Id) }}</div></div>
                     </div>
                     <div class="mt-4 text-sm font-black text-white/30 uppercase tracking-widest">場地 {{ match.court }}</div>
+                </div>
+            </div>
+
+            <div v-if="currentTab === 'playoff'" class="max-w-2xl mx-auto">
+                <div class="flex items-baseline justify-between mb-8">
+                    <h2 class="text-4xl md:text-5xl font-black italic uppercase text-white">晉級賽</h2>
+                    <span class="text-[11px] text-white/30 font-bold shrink-0 ml-3">分組賽 {{ completedCount }} / 56 場</span>
+                </div>
+
+                <div class="flex gap-3 md:gap-6 items-start">
+                    <template v-for="(col, colIdx) in playoffBracket" :key="colIdx">
+                        <div class="flex-1 flex flex-col gap-2">
+                            <div v-for="(match, matchIdx) in col" :key="match.id">
+                                <div class="row-bg rounded-xl p-4 md:p-6 relative">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <span class="score-font italic text-xl text-white/60">{{ match.id }}</span>
+                                        <span class="text-[11px] font-black text-white/30 uppercase tracking-widest">場地 {{ match.court }}</span>
+                                    </div>
+                                    <div class="text-center mb-3">
+                                        <div class="text-sm md:text-base font-black leading-tight" :class="!allMatchesComplete ? 'text-white/30' : ''">{{ allMatchesComplete ? match.t1.name : 'TBD' }}</div>
+                                        <div class="text-xs font-black mt-1" :class="match.t1.grp === 'A' ? 'uwin-text-a' : 'uwin-text-b'">{{ match.t1.pos }}</div>
+                                    </div>
+                                    <div class="text-center text-[10px] text-white/20 font-black italic my-2">VS</div>
+                                    <div class="text-center mt-3">
+                                        <div class="text-sm md:text-base font-black leading-tight" :class="!allMatchesComplete ? 'text-white/30' : ''">{{ allMatchesComplete ? match.t2.name : 'TBD' }}</div>
+                                        <div class="text-xs font-black mt-1" :class="match.t2.grp === 'A' ? 'uwin-text-a' : 'uwin-text-b'">{{ match.t2.pos }}</div>
+                                    </div>
+                                </div>
+                                <div v-if="matchIdx === 0" class="text-center py-3 text-[10px] text-white/20 font-black uppercase tracking-widest">↕ 勝者對決</div>
+                            </div>
+                        </div>
+                        <div v-if="colIdx === 0" class="w-px self-stretch bg-white/10 mx-1"></div>
+                    </template>
+                </div>
                 </div>
             </div>
         </main>
@@ -246,6 +281,37 @@
                 const getTeamName = (id) => teams.value.find(t => t.id === parseInt(id))?.name || '??';
                 const sortedGroup = (g) => [...teams.value].filter(t => t.group === g).sort((a, b) => (b.wins*3+b.draws) - (a.wins*3+a.draws) || b.sw - a.sw || a.sl - b.sl);
                 const groupTeams = (g) => teams.value.filter(t => t.group === g).sort((a, b) => a.id - b.id);
+
+                const isPlayed = (m) => {
+                    const s1 = parseInt(m.score1) || 0;
+                    const s2 = parseInt(m.score2) || 0;
+                    return s1 > 0 || s2 > 0;
+                };
+
+                const allMatchesComplete = computed(() => {
+                    const groupMatches = matches.value.filter(m => m.group === 'A' || m.group === 'B');
+                    return groupMatches.length >= 56 && groupMatches.every(isPlayed);
+                });
+
+                const completedCount = computed(() =>
+                    matches.value.filter(m => (m.group === 'A' || m.group === 'B') && isPlayed(m)).length
+                );
+
+                const playoffBracket = computed(() => {
+                    const a = sortedGroup('A');
+                    const b = sortedGroup('B');
+                    const name = (team) => team?.name || '待定';
+                    return [
+                        [
+                            { id: 'G1', court: 'A', t1: { pos: 'A1', name: name(a[0]), grp: 'A' }, t2: { pos: 'B4', name: name(b[3]), grp: 'B' } },
+                            { id: 'G4', court: 'B', t1: { pos: 'B2', name: name(b[1]), grp: 'B' }, t2: { pos: 'A3', name: name(a[2]), grp: 'A' } },
+                        ],
+                        [
+                            { id: 'G2', court: 'B', t1: { pos: 'B1', name: name(b[0]), grp: 'B' }, t2: { pos: 'A4', name: name(a[3]), grp: 'A' } },
+                            { id: 'G3', court: 'A', t1: { pos: 'A2', name: name(a[1]), grp: 'A' }, t2: { pos: 'B3', name: name(b[2]), grp: 'B' } },
+                        ]
+                    ];
+                });
                 const filteredMatches = computed(() => matches.value.filter(m =>
                     m.group === matchGroup.value &&
                     (!selectedTeam.value || String(m.t1Id) === selectedTeam.value || String(m.t2Id) === selectedTeam.value)
@@ -255,7 +321,7 @@
                     fetchData();
                 });
 
-                return { currentTab, matchGroup, loading, lastUpdated, teams, matches, selectedTeam, filteredMatches, groupTeams, getTeamName, sortedGroup };
+                return { currentTab, matchGroup, loading, lastUpdated, teams, matches, selectedTeam, filteredMatches, groupTeams, getTeamName, sortedGroup, playoffBracket, allMatchesComplete, completedCount };
             }
         }).mount('#app');
     </script>
