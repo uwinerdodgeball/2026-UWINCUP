@@ -14,6 +14,7 @@
         body { background: radial-gradient(circle at 50% 50%, #1A3A7A 0%, #061121 100%); color: #ffffff; font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; overflow-x: hidden; }
         .uwin-text-a { color: #FFB915; }
         .uwin-text-b { color: #009797; }
+        .uwin-text-draw { color: #A0B8CC; }
         .header-title { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; text-transform: uppercase; }
         .sub-title { font-size: 14px; font-weight: 900; letter-spacing: 0.3em; color: rgba(255,255,255,0.5); margin-top: 4px; }
         .row-bg { background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); position: relative; }
@@ -30,6 +31,10 @@
         .live-icon { display: flex; align-items: center; background: #FF0000; color: white; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; }
         .live-dot { width: 6px; height: 6px; background: white; border-radius: 50%; margin-right: 4px; animation: blink 1.2s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
+        @keyframes bounce-right { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(7px); } }
+        .scroll-hint-arrow { display: inline-block; animation: bounce-right 1.2s ease-in-out infinite; opacity: 0.4; }
+        .team-underline { background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)); background-size: 0% 2px; background-repeat: no-repeat; background-position: left bottom; padding-bottom: 3px; animation: underline-in 0.4s ease forwards; }
+        @keyframes underline-in { to { background-size: 100% 2px; } }
 
         /* 積分榜欄位對齊 */
         .col-rank { width: 40px; flex-shrink: 0; text-align: center; }
@@ -50,10 +55,12 @@
         .group-a-active { background: #FFB915; color: #000; }
         .group-b-active { background: #009797; color: #fff; }
 
-        .match-id-badge { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; }
+        .match-id-badge { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 14px; font-weight: 900; padding: 2px 8px; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; }
         .rank-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .rank-min-width { min-width: 480px; }
         .match-time-label { font-size: 13px; font-weight: 900; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 4px; }
+        .team-select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 8px 14px; font-weight: 900; font-size: 14px; font-family: 'Noto Sans TC', sans-serif; cursor: pointer; outline: none; }
+        .team-select option { background: #0d2150; color: #fff; }
     </style>
 </head>
 <body class="pb-10 px-4 md:px-10">
@@ -92,8 +99,12 @@
         <main class="max-w-[1440px] mx-auto">
             <div v-if="currentTab === 'rank'" class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
                 <section v-for="group in ['A', 'B']" :key="group">
-                    <h2 class="text-4xl md:text-5xl font-black italic uppercase mb-6" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h2>
-                    <div class="rank-table-container">
+                    <div class="flex items-baseline justify-between mb-6">
+                        <h2 class="text-4xl md:text-5xl font-black italic uppercase" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h2>
+                        <span class="text-[11px] text-white/30 font-bold tracking-wide shrink-0 ml-3">左右滑動查看完整資料 <span class="scroll-hint-arrow text-xl">»</span></span>
+                    </div>
+                    <div class="relative">
+                        <div class="rank-table-container">
                         <div class="rank-min-width space-y-2">
                             <div class="flex px-2 table-header mb-3">
                                 <div class="col-rank">#</div>
@@ -115,24 +126,31 @@
                             </div>
                         </div>
                     </div>
+                </div>
                 </section>
             </div>
 
             <div v-if="currentTab === 'matches'" class="max-w-4xl mx-auto space-y-6">
-                <h2 class="text-4xl md:text-5xl font-black italic uppercase mb-8 text-center" :class="matchGroup === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ matchGroup }} 賽程</h2>
-                <div v-for="match in matches.filter(m => m.group === matchGroup)" :key="match.id" class="row-bg p-6 md:p-10 flex flex-col items-center rounded-xl">
+                <h2 class="text-4xl md:text-5xl font-black italic uppercase mb-4 text-center" :class="matchGroup === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ matchGroup }} 賽程</h2>
+                <div class="flex justify-center mb-6">
+                    <select v-model="selectedTeam" class="team-select">
+                        <option value="">全部隊伍</option>
+                        <option v-for="team in groupTeams(matchGroup)" :key="team.id" :value="String(team.id)">{{ team.name }}</option>
+                    </select>
+                </div>
+                <div v-for="match in filteredMatches" :key="match.id" class="row-bg p-6 md:p-10 flex flex-col items-center rounded-xl">
                     <div class="match-id-badge">MATCH #{{ match.id }}</div>
                     <div class="mb-6"><span class="match-time-label">{{ match.day }} {{ match.time }}</span></div>
                     <div class="flex items-center justify-center w-full">
-                        <div class="w-1/3 text-center px-2"><div class="text-base md:text-2xl font-black leading-tight">{{ getTeamName(match.t1Id) }}</div></div>
+                        <div class="w-1/3 text-center px-2"><div class="text-base md:text-2xl font-black leading-tight" :class="selectedTeam && String(match.t1Id) === selectedTeam ? 'team-underline' : ''">{{ getTeamName(match.t1Id) }}</div></div>
                         <div class="flex items-center justify-center px-4 md:px-10 shrink-0">
-                            <div class="text-4xl md:text-6xl score-font italic" :class="Number(match.score1) > Number(match.score2) ? (match.court === 'A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score1 }}</div>
+                            <div class="text-4xl md:text-6xl score-font italic" :class="(Number(match.score1) === 0 && Number(match.score2) === 0) ? 'text-white/10' : Number(match.score1) > Number(match.score2) ? (matchGroup === 'A' ? 'uwin-text-a' : 'uwin-text-b') : Number(match.score1) === Number(match.score2) ? 'uwin-text-draw' : 'text-white/10'">{{ match.score1 }}</div>
                             <div class="mx-4 md:mx-8 text-[10px] md:text-xs text-white/10 font-black italic">VS</div>
-                            <div class="text-4xl md:text-6xl score-font italic" :class="Number(match.score2) > Number(match.score1) ? (match.court === 'A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score2 }}</div>
+                            <div class="text-4xl md:text-6xl score-font italic" :class="(Number(match.score1) === 0 && Number(match.score2) === 0) ? 'text-white/10' : Number(match.score2) > Number(match.score1) ? (matchGroup === 'A' ? 'uwin-text-a' : 'uwin-text-b') : Number(match.score2) === Number(match.score1) ? 'uwin-text-draw' : 'text-white/10'">{{ match.score2 }}</div>
                         </div>
-                        <div class="w-1/3 text-center px-2"><div class="text-base md:text-2xl font-black leading-tight">{{ getTeamName(match.t2Id) }}</div></div>
+                        <div class="w-1/3 text-center px-2"><div class="text-base md:text-2xl font-black leading-tight" :class="selectedTeam && String(match.t2Id) === selectedTeam ? 'team-underline' : ''">{{ getTeamName(match.t2Id) }}</div></div>
                     </div>
-                    <div class="mt-4 text-[10px] font-black text-white/10 uppercase tracking-widest">場地 {{ match.court }}</div>
+                    <div class="mt-4 text-sm font-black text-white/30 uppercase tracking-widest">場地 {{ match.court }}</div>
                 </div>
             </div>
         </main>
@@ -143,10 +161,13 @@
     </div>
 
     <script>
-        const { createApp, ref, onMounted } = Vue;
-        // 以下為試算表連結
+        const { createApp, ref, computed, watch, onMounted } = Vue;
+        // 隊伍資料（不常變動，維持 CSV 匯出）
         const TEAM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5GX2RO0zfoMMr6Sm3zOhmXm1ZvLiHCLype4XVI6sj6RL7VdLDFtHd-3zpwPmE8x2KGaSFysEYWYFB/pub?output=csv';
-        const MATCH_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP1qGTwLgLVQhL-uXLdNnvAOVwYSUj5S1qmNMoCCuefRSfstoQQW9lPR80BNok9_pYjvHu90SyG96t/pub?output=csv';
+        // 賽程資料（改用 Sheets API，無快取延遲）
+        const MATCH_SHEET_ID = '1q5pB6F2ScAz58XaUb0p-YsMGAFnitcs-CmxZ3HDp40A';
+        const MATCH_SHEET_NAME = 'matches';
+        const SHEETS_API_KEY = 'AIzaSyBpTc8BG3KAuUpIOYl0-r65oca7NjDJ6Xg';
 
         createApp({
             setup() {
@@ -157,17 +178,28 @@
                 const matches = ref([]);
                 const lastUpdated = ref('--:--:--');
 
-                // 加入快取避讓 (Cache Buster)，確保手動重整時能抓到最新版
                 const loadCSV = (url) => {
                     const cacheBuster = `&t=${new Date().getTime()}`;
                     return new Promise((resolve, reject) => {
-                        Papa.parse(url + cacheBuster, { 
-                            download: true, 
-                            header: true, 
-                            skipEmptyLines: true, 
-                            complete: (res) => resolve(res.data), 
-                            error: (err) => reject(err) 
+                        Papa.parse(url + cacheBuster, {
+                            download: true,
+                            header: true,
+                            skipEmptyLines: true,
+                            complete: (res) => resolve(res.data),
+                            error: (err) => reject(err)
                         });
+                    });
+                };
+
+                const loadMatchesFromAPI = async () => {
+                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${MATCH_SHEET_ID}/values/${MATCH_SHEET_NAME}?key=${SHEETS_API_KEY}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const [headers, ...rows] = data.values;
+                    return rows.map(row => {
+                        const obj = {};
+                        headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+                        return obj;
                     });
                 };
 
@@ -175,7 +207,7 @@
                     loading.value = true;
                     try {
                         const rawTeams = await loadCSV(TEAM_CSV_URL);
-                        const rawMatches = await loadCSV(MATCH_CSV_URL);
+                        const rawMatches = await loadMatchesFromAPI();
                         const processedTeams = rawTeams.map(t => ({ 
                             id: parseInt(String(t.id).trim()), 
                             group: String(t.group).trim(), 
@@ -208,15 +240,22 @@
                     loading.value = false;
                 };
 
+                const selectedTeam = ref('');
+                watch(matchGroup, () => { selectedTeam.value = ''; });
+
                 const getTeamName = (id) => teams.value.find(t => t.id === parseInt(id))?.name || '??';
                 const sortedGroup = (g) => [...teams.value].filter(t => t.group === g).sort((a, b) => (b.wins*3+b.draws) - (a.wins*3+a.draws) || b.sw - a.sw || a.sl - b.sl);
-                
-                // 僅在開啟網頁時執行一次，不設定 setInterval
-                onMounted(() => { 
-                    fetchData(); 
+                const groupTeams = (g) => teams.value.filter(t => t.group === g).sort((a, b) => a.id - b.id);
+                const filteredMatches = computed(() => matches.value.filter(m =>
+                    m.group === matchGroup.value &&
+                    (!selectedTeam.value || String(m.t1Id) === selectedTeam.value || String(m.t2Id) === selectedTeam.value)
+                ));
+
+                onMounted(() => {
+                    fetchData();
                 });
 
-                return { currentTab, matchGroup, loading, lastUpdated, teams, matches, getTeamName, sortedGroup };
+                return { currentTab, matchGroup, loading, lastUpdated, teams, matches, selectedTeam, filteredMatches, groupTeams, getTeamName, sortedGroup };
             }
         }).mount('#app');
     </script>
