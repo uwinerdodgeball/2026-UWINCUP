@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 UWIN CUP | 雲端即時比分</title>
+    <title>2026 UWIN CUP | 賽事即時比分</title>
     <link rel="icon" href="logo.jpg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -29,7 +29,7 @@
         .stat-number { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; color: rgba(255, 255, 255, 0.6); }
 
         /* 按鈕樣式 */
-        .tab-btn { padding: 10px 20px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); }
+        .tab-btn { padding: 12px 24px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); }
         .tab-active { background: #ffffff; color: #061121; border-color: #ffffff; }
         .tab-inactive { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.4); }
 
@@ -107,96 +107,4 @@
             <div v-if="currentTab === 'matches'" class="max-w-4xl mx-auto space-y-6">
                 <h2 class="text-4xl md:text-5xl font-black italic uppercase mb-8 text-center" :class="matchGroup === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ matchGroup }} 賽程</h2>
                 <div v-for="match in matches.filter(m => m.group === matchGroup)" :key="match.id" class="row-bg p-6 md:p-10 flex flex-col items-center rounded-xl">
-                    <div class="match-id-badge">MATCH #{{ match.id }}</div>
-                    
-                    <div class="mb-6">
-                        <span class="match-time-label">{{ match.day }} {{ match.time }}</span>
-                    </div>
-                    <div class="flex items-center justify-center w-full">
-                        <div class="w-1/3 text-center px-2">
-                            <div class="text-base md:text-2xl font-black leading-tight">{{ getTeamName(match.t1Id) }}</div>
-                        </div>
-                        <div class="flex items-center justify-center px-4 md:px-10 shrink-0">
-                            <div class="text-4xl md:text-6xl score-font italic" :class="Number(match.score1) > Number(match.score2) ? (matchGroup === 'A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score1 }}</div>
-                            <div class="mx-4 md:mx-8 text-[10px] md:text-xs text-white/10 font-black italic">VS</div>
-                            <div class="text-4xl md:text-6xl score-font italic" :class="Number(match.score2) > Number(match.score1) ? (matchGroup === 'A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score2 }}</div>
-                        </div>
-                        <div class="w-1/3 text-center px-2">
-                            <div class="text-base md:text-2xl font-black leading-tight">{{ getTeamName(match.t2Id) }}</div>
-                        </div>
-                    </div>
-                    <div class="mt-4 text-[10px] font-black text-white/10 uppercase tracking-widest">Court {{ match.court }}</div>
-                </div>
-            </div>
-        </main>
-
-        <footer class="mt-20 text-center text-white/5 text-[9px] font-black tracking-widest pb-10 uppercase">
-            © 2026 UWIN CLOUD SYNC
-        </footer>
-    </div>
-
-    <script>
-        const { createApp, ref, onMounted } = Vue;
-
-        const TEAM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5GX2RO0zfoMMr6Sm3zOhmXm1ZvLiHCLype4XVI6sj6RL7VdLDFtHd-3zpwPmE8x2KGaSFysEYWYFB/pub?output=csv';
-        const MATCH_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP1qGTwLgLVQhL-uXLdNnvAOVwYSUj5S1qmNMoCCuefRSfstoQQW9lPR80BNok9_pYjvHu90SyG96t/pub?output=csv';
-
-        createApp({
-            setup() {
-                const currentTab = ref('rank');
-                const matchGroup = ref('A'); // 預設顯示 A 組賽程
-                const loading = ref(true);
-                const teams = ref([]);
-                const matches = ref([]);
-                const lastUpdated = ref('--:--:--');
-
-                const loadCSV = (url) => {
-                    return new Promise((resolve, reject) => {
-                        Papa.parse(url, { download: true, header: true, skipEmptyLines: true, complete: (res) => resolve(res.data), error: (err) => reject(err) });
-                    });
-                };
-
-                const fetchData = async () => {
-                    loading.value = true;
-                    try {
-                        const rawTeams = await loadCSV(TEAM_CSV_URL);
-                        const rawMatches = await loadCSV(MATCH_CSV_URL);
-
-                        const processedTeams = rawTeams.map(t => ({
-                            id: parseInt(String(t.id).trim()), group: String(t.group).trim(), name: String(t.name).trim(),
-                            wins: 0, draws: 0, losses: 0, sw: 0, sl: 0
-                        }));
-
-                        rawMatches.forEach(m => {
-                            const s1 = parseInt(m.score1) || 0; const s2 = parseInt(m.score2) || 0;
-                            const t1Id = parseInt(m.t1Id); const t2Id = parseInt(m.t2Id);
-                            if (isNaN(t1Id) || isNaN(t2Id)) return;
-                            if (s1 === 0 && s2 === 0) return;
-                            const t1 = processedTeams.find(t => t.id === t1Id);
-                            const t2 = processedTeams.find(t => t.id === t2Id);
-                            if (t1 && t2) {
-                                t1.sw += s1; t1.sl += s2; t2.sw += s2; t2.sl += s1;
-                                if (s1 > s2) { t1.wins++; t2.losses++; }
-                                else if (s2 > s1) { t2.wins++; t1.losses++; }
-                                else { t1.draws++; t2.draws++; }
-                            }
-                        });
-
-                        teams.value = processedTeams;
-                        matches.value = rawMatches;
-                        lastUpdated.value = new Date().toLocaleTimeString();
-                    } catch (e) { console.error("Sync Failed:", e); }
-                    loading.value = false;
-                };
-
-                const getTeamName = (id) => teams.value.find(t => t.id === parseInt(id))?.name || '??';
-                const sortedGroup = (g) => [...teams.value].filter(t => t.group === g).sort((a, b) => (b.wins*3+b.draws) - (a.wins*3+a.draws) || b.sw - a.sw || a.sl - b.sl);
-
-                onMounted(() => { fetchData(); setInterval(fetchData, 30000); });
-
-                return { currentTab, matchGroup, loading, lastUpdated, teams, matches, getTeamName, sortedGroup };
-            }
-        }).mount('#app');
-    </script>
-</body>
-</html>
+                    <div class="
