@@ -16,14 +16,9 @@
         .header-title { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; text-transform: uppercase; }
         .row-bg { background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
         .score-font { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; }
-        
-        .tab-btn { padding: 10px 20px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; }
-        @media (min-width: 640px) { .tab-btn { padding: 12px 40px; font-size: 16px; } }
+        .tab-btn { padding: 12px 24px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); }
         .tab-active { background: #ffffff; color: #061121; border-color: #ffffff; }
         .tab-inactive { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.4); }
-
-        .rank-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .rank-min-width { min-width: 380px; }
     </style>
 </head>
 <body class="pb-10 px-4 md:px-10">
@@ -33,7 +28,7 @@
             <h1 class="header-title text-4xl md:text-7xl leading-none italic mb-6">UWIN CUP <span class="uwin-text-a">LIVE</span></h1>
             
             <div v-if="loading" class="mb-6 text-[10px] md:text-xs text-yellow-500 animate-pulse font-bold tracking-widest uppercase">
-                Synchronizing with Cloud Sheets...
+                Synchronizing Cloud Data...
             </div>
             <div v-else class="mb-6 text-[10px] md:text-xs text-white/20 font-bold tracking-widest uppercase">
                 Last Update: {{ lastUpdated }}
@@ -50,21 +45,19 @@
                 <section v-for="group in ['A', 'B']" :key="group">
                     <h2 class="text-4xl md:text-5xl font-black italic uppercase mb-6" :class="group === 'A' ? 'uwin-text-a' : 'uwin-text-b'">Group {{ group }}</h2>
                     
-                    <div v-if="currentTab === 'rank'" class="rank-table-container">
-                        <div class="rank-min-width space-y-2">
-                            <div class="flex px-2 text-[10px] font-black text-white/30 uppercase mb-2">
-                                <div class="w-8">#</div><div class="flex-grow pl-4">Team</div><div class="w-16 text-center">W-D-L</div><div class="w-12 text-center">SW</div><div class="w-12 text-center">SL</div><div class="w-16 text-center">Pts</div>
-                            </div>
-                            <div v-for="(team, index) in sortedGroup(group)" :key="team.id" class="flex items-center row-bg px-2 md:px-4 h-[64px] rounded-lg">
-                                <div class="w-8 text-center font-black text-2xl italic" :class="index < 4 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ index + 1 }}</div>
-                                <div class="flex-grow flex items-center pl-4 overflow-hidden">
-                                    <span class="text-base md:text-xl font-bold truncate mr-2" :class="index < 4 ? 'text-white' : 'text-white/40'">{{ team.name }}</span>
-                                    <div class="ml-auto flex items-center text-white/30 italic font-bold">
-                                        <span class="w-16 text-center text-[10px] font-mono">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</span>
-                                        <span class="w-12 text-center text-[10px] font-mono">{{ team.sw }}</span>
-                                        <span class="w-12 text-center text-[10px] font-mono">{{ team.sl }}</span>
-                                        <div class="w-16 text-center score-font text-3xl" :class="index < 4 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ team.wins*3 + team.draws }}</div>
-                                    </div>
+                    <div v-if="currentTab === 'rank'" class="overflow-x-auto space-y-2">
+                        <div class="min-w-[380px] flex px-2 text-[10px] font-black text-white/30 uppercase mb-2">
+                            <div class="w-8">#</div><div class="flex-grow pl-4">Team</div><div class="w-16 text-center">W-D-L</div><div class="w-12 text-center">SW</div><div class="w-12 text-center">SL</div><div class="w-16 text-center">Pts</div>
+                        </div>
+                        <div v-for="(team, index) in sortedGroup(group)" :key="team.id" class="min-w-[380px] flex items-center row-bg px-2 md:px-4 h-[64px] rounded-lg">
+                            <div class="w-8 text-center font-black text-2xl italic" :class="index < 4 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ index + 1 }}</div>
+                            <div class="flex-grow flex items-center pl-4 overflow-hidden">
+                                <span class="text-base md:text-xl font-bold truncate mr-2" :class="index < 4 ? 'text-white' : 'text-white/40'">{{ team.name }}</span>
+                                <div class="ml-auto flex items-center text-white/30 italic font-bold">
+                                    <span class="w-16 text-center text-[10px] font-mono">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</span>
+                                    <span class="w-12 text-center text-[10px] font-mono">{{ team.sw }}</span>
+                                    <span class="w-12 text-center text-[10px] font-mono">{{ team.sl }}</span>
+                                    <div class="w-16 text-center score-font text-3xl" :class="index < 4 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ team.wins*3 + team.draws }}</div>
                                 </div>
                             </div>
                         </div>
@@ -72,7 +65,7 @@
 
                     <div v-else class="space-y-3 md:space-y-4">
                         <div v-for="match in matches.filter(m => m.group === group)" :key="match.id" class="row-bg p-4 md:p-6 flex items-center justify-between rounded-xl">
-                            <div class="w-[38%] text-right font-black text-sm md:text-lg lg:text-xl leading-tight truncate">{{ getTeamName(match.t1Id) }}</div>
+                            <div class="w-[38%] text-right font-black text-sm md:text-xl leading-tight">{{ getTeamName(match.t1Id) }}</div>
                             <div class="flex flex-col items-center px-2 md:px-6 shrink-0">
                                 <span class="text-[8px] md:text-[10px] font-bold text-white/40 mb-2 tracking-tighter">{{ match.day }} {{ match.time }}</span>
                                 <div class="flex items-center space-x-3 md:space-x-5">
@@ -81,7 +74,7 @@
                                     <div class="text-3xl md:text-5xl score-font italic" :class="Number(match.score2) > Number(match.score1) ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score2 }}</div>
                                 </div>
                             </div>
-                            <div class="w-[38%] text-left font-black text-sm md:text-lg lg:text-xl leading-tight truncate">{{ getTeamName(match.t2Id) }}</div>
+                            <div class="w-[38%] text-left font-black text-sm md:text-xl leading-tight">{{ getTeamName(match.t2Id) }}</div>
                         </div>
                     </div>
                 </section>
@@ -89,13 +82,14 @@
         </main>
 
         <footer class="mt-20 text-center text-white/5 text-[9px] font-black tracking-widest pb-10 uppercase">
-            © 2026 UWIN CLOUD SYNC MANAGEMENT
+            © 2026 UWIN CLOUD SYNC
         </footer>
     </div>
 
     <script>
         const { createApp, ref, onMounted } = Vue;
 
+        // 請確保這兩個網址是從 Google 試算表「發布到網路」取得的 CSV 連結
         const TEAM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5GX2RO0zfoMMr6Sm3zOhmXm1ZvLiHCLype4XVI6sj6RL7VdLDFtHd-3zpwPmE8x2KGaSFysEYWYFB/pub?output=csv';
         const MATCH_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP1qGTwLgLVQhL-uXLdNnvAOVwYSUj5S1qmNMoCCuefRSfstoQQW9lPR80BNok9_pYjvHu90SyG96t/pub?output=csv';
 
@@ -108,8 +102,14 @@
                 const lastUpdated = ref('--:--:--');
 
                 const loadCSV = (url) => {
-                    return new Promise((resolve) => {
-                        Papa.parse(url, { download: true, header: true, skipEmptyLines: true, complete: (res) => resolve(res.data) });
+                    return new Promise((resolve, reject) => {
+                        Papa.parse(url, {
+                            download: true,
+                            header: true,
+                            skipEmptyLines: true,
+                            complete: (res) => resolve(res.data),
+                            error: (err) => reject(err)
+                        });
                     });
                 };
 
@@ -119,18 +119,30 @@
                         const rawTeams = await loadCSV(TEAM_CSV_URL);
                         const rawMatches = await loadCSV(MATCH_CSV_URL);
 
+                        // 初始化並清理隊伍數據
                         const processedTeams = rawTeams.map(t => ({
-                            id: Number(t.id), group: t.group, name: t.name,
+                            id: parseInt(String(t.id).trim()),
+                            group: String(t.group).trim(),
+                            name: String(t.name).trim(),
                             wins: 0, draws: 0, losses: 0, sw: 0, sl: 0
                         }));
 
+                        // 計算積分
                         rawMatches.forEach(m => {
-                            const s1 = Number(m.score1 || 0); const s2 = Number(m.score2 || 0);
+                            const s1 = parseInt(m.score1) || 0;
+                            const s2 = parseInt(m.score2) || 0;
+                            const t1Id = parseInt(m.t1Id);
+                            const t2Id = parseInt(m.t2Id);
+
+                            if (isNaN(t1Id) || isNaN(t2Id)) return;
                             if (s1 === 0 && s2 === 0) return;
-                            const t1 = processedTeams.find(t => t.id === Number(m.t1Id));
-                            const t2 = processedTeams.find(t => t.id === Number(m.t2Id));
+
+                            const t1 = processedTeams.find(t => t.id === t1Id);
+                            const t2 = processedTeams.find(t => t.id === t2Id);
+
                             if (t1 && t2) {
-                                t1.sw += s1; t1.sl += s2; t2.sw += s2; t2.sl += s1;
+                                t1.sw += s1; t1.sl += s2;
+                                t2.sw += s2; t2.sl += s1;
                                 if (s1 > s2) { t1.wins++; t2.losses++; }
                                 else if (s2 > s1) { t2.wins++; t1.losses++; }
                                 else { t1.draws++; t2.draws++; }
@@ -138,16 +150,37 @@
                         });
 
                         teams.value = processedTeams;
-                        matches.value = rawMatches;
+                        matches.value = rawMatches.map(m => ({
+                            ...m,
+                            t1Id: parseInt(m.t1Id),
+                            t2Id: parseInt(m.t2Id)
+                        }));
                         lastUpdated.value = new Date().toLocaleTimeString();
-                    } catch (e) { console.error("Cloud Sync Error", e); }
+                    } catch (e) {
+                        console.error("Sync Failed:", e);
+                    }
                     loading.value = false;
                 };
 
-                const getTeamName = (id) => teams.value.find(t => t.id === Number(id))?.name || '??';
-                const sortedGroup = (g) => [...teams.value].filter(t => t.group === g).sort((a,b) => (b.wins*3+b.draws) - (a.wins*3+a.draws) || b.sw - a.sw || a.sl - b.sl);
+                const getTeamName = (id) => {
+                    const team = teams.value.find(t => t.id === id);
+                    return team ? team.name : '??';
+                };
 
-                onMounted(() => { fetchData(); setInterval(fetchData, 30000); });
+                const sortedGroup = (g) => {
+                    return [...teams.value].filter(t => t.group === g).sort((a, b) => {
+                        const ptsA = a.wins * 3 + a.draws;
+                        const ptsB = b.wins * 3 + b.draws;
+                        if (ptsB !== ptsA) return ptsB - ptsA;
+                        if (b.sw !== a.sw) return b.sw - a.sw;
+                        return a.sl - b.sl;
+                    });
+                };
+
+                onMounted(() => {
+                    fetchData();
+                    setInterval(fetchData, 30000); // 30秒自動同步一次
+                });
 
                 return { currentTab, loading, lastUpdated, teams, matches, getTeamName, sortedGroup };
             }
