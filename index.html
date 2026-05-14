@@ -77,17 +77,14 @@
                 </section>
             </div>
         </main>
-
-        <footer class="mt-32 text-center text-white/5 text-[10px] font-black tracking-widest pb-20 uppercase">
-            © 2026 UWIN CLOUD SYNC MANAGEMENT
-        </footer>
     </div>
 
     <script>
         const { createApp, ref, onMounted } = Vue;
 
-        // ！！！請在此處替換為妳發布的 Google Sheet CSV 網址 ！！！
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT.../pub?output=csv';
+        // ！！！請分別填入兩個分頁的 CSV 網址 ！！！
+        const TEAM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5GX2RO0zfoMMr6Sm3zOhmXm1ZvLiHCLype4XVI6sj6RL7VdLDFtHd-3zpwPmE8x2KGaSFysEYWYFB/pub?output=csv';
+        const MATCH_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP1qGTwLgLVQhL-uXLdNnvAOVwYSUj5S1qmNMoCCuefRSfstoQQW9lPR80BNok9_pYjvHu90SyG96t/pub?output=csv';
 
         createApp({
             setup() {
@@ -96,69 +93,46 @@
                 const teams = ref([]);
                 const matches = ref([]);
 
-                const fetchData = () => {
-                    loading.value = true;
-                    Papa.parse(SHEET_CSV_URL, {
-                        download: true,
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                            const data = results.data;
-                            
-                            // 分離 teams 與 matches (假設兩份資料都在同一個 CSV 中)
-                            // 更好的做法是發布兩個分頁的 CSV
-                            const rawTeams = data.filter(row => row.type === 'team');
-                            const rawMatches = data.filter(row => row.type === 'match');
-
-                            // 初始化隊伍數據
-                            const processedTeams = rawTeams.map(t => ({
-                                id: Number(t.id),
-                                group: t.group,
-                                name: t.name,
-                                wins: 0, draws: 0, losses: 0, sw: 0, sl: 0
-                            }));
-
-                            // 計算積分邏輯
-                            rawMatches.forEach(m => {
-                                const s1 = Number(m.score1);
-                                const s2 = Number(m.score2);
-                                if (s1 === 0 && s2 === 0) return;
-
-                                const t1 = processedTeams.find(t => t.id === Number(m.t1Id));
-                                const t2 = processedTeams.find(t => t.id === Number(m.t2Id));
-
-                                if (t1 && t2) {
-                                    t1.sw += s1; t1.sl += s2;
-                                    t2.sw += s2; t2.sl += s1;
-                                    if (s1 > s2) { t1.wins++; t2.losses++; }
-                                    else if (s2 > s1) { t2.wins++; t1.losses++; }
-                                    else { t1.draws++; t2.draws++; }
-                                }
-                            });
-
-                            teams.value = processedTeams;
-                            matches.value = rawMatches;
-                            loading.value = false;
-                        }
+                const loadCSV = (url) => {
+                    return new Promise((resolve) => {
+                        Papa.parse(url, { download: true, header: true, skipEmptyLines: true, complete: (res) => resolve(res.data) });
                     });
+                };
+
+                const fetchData = async () => {
+                    loading.value = true;
+                    try {
+                        const rawTeams = await loadCSV(TEAM_CSV_URL);
+                        const rawMatches = await loadCSV(MATCH_CSV_URL);
+
+                        const processedTeams = rawTeams.map(t => ({
+                            id: Number(t.id), group: t.group, name: t.name,
+                            wins: 0, draws: 0, losses: 0, sw: 0, sl: 0
+                        }));
+
+                        rawMatches.forEach(m => {
+                            const s1 = Number(m.score1 || 0); const s2 = Number(m.score2 || 0);
+                            if (s1 === 0 && s2 === 0) return;
+                            const t1 = processedTeams.find(t => t.id === Number(m.t1Id));
+                            const t2 = processedTeams.find(t => t.id === Number(m.t2Id));
+                            if (t1 && t2) {
+                                t1.sw += s1; t1.sl += s2; t2.sw += s2; t2.sl += s1;
+                                if (s1 > s2) { t1.wins++; t2.losses++; }
+                                else if (s2 > s1) { t2.wins++; t1.losses++; }
+                                else { t1.draws++; t2.draws++; }
+                            }
+                        });
+
+                        teams.value = processedTeams;
+                        matches.value = rawMatches;
+                    } catch (e) { console.error("同步失敗", e); }
+                    loading.value = false;
                 };
 
                 const getTeamName = (id) => teams.value.find(t => t.id === Number(id))?.name || '??';
-                
-                const sortedGroup = (groupName) => {
-                    return [...teams.value].filter(t => t.group === groupName).sort((a, b) => {
-                        const sA = a.wins * 3 + a.draws;
-                        const sB = b.wins * 3 + b.draws;
-                        if (sB !== sA) return sB - sA;
-                        if (b.sw !== a.sw) return b.sw - a.sw;
-                        return a.sl - b.sl;
-                    });
-                };
+                const sortedGroup = (g) => [...teams.value].filter(t => t.group === g).sort((a,b) => (b.wins*3+b.draws) - (a.wins*3+a.draws) || b.sw - a.sw || a.sl - b.sl);
 
-                onMounted(() => {
-                    fetchData();
-                    setInterval(fetchData, 30000); // 每 30 秒同步一次
-                });
+                onMounted(() => { fetchData(); setInterval(fetchData, 30000); });
 
                 return { currentTab, loading, teams, matches, getTeamName, sortedGroup };
             }
