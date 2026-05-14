@@ -31,7 +31,7 @@
         .live-dot { width: 6px; height: 6px; background: white; border-radius: 50%; margin-right: 4px; animation: blink 1.2s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
 
-        /* 積分榜精確對齊 */
+        /* 積分榜欄位對齊 */
         .col-rank { width: 40px; flex-shrink: 0; text-align: center; }
         .col-name { flex-grow: 1; padding-left: 12px; overflow: hidden; }
         .col-stat-wdl { width: 85px; flex-shrink: 0; text-align: center; }
@@ -41,7 +41,7 @@
         .table-header { font-size: 11px; font-weight: 900; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
         .stat-number { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: rgba(255, 255, 255, 0.7); }
 
-        /* 按鈕樣式 */
+        /* 分頁按鈕 */
         .tab-btn { padding: 10px 24px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); }
         .tab-active { background: #ffffff; color: #061121; border-color: #ffffff; }
         .tab-inactive { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.4); }
@@ -66,16 +66,16 @@
             </div>
 
             <h1 class="header-title text-4xl md:text-7xl leading-none italic">2026 UWIN CUP</h1>
-            <div class="sub-title">臺灣美式躲避球俱樂部錦標賽</div>
+            <div class="sub-title">臺灣美式躲避球錦標賽</div>
             <div class="live-row">
                 <div class="live-icon"><span class="live-dot"></span>LIVE</div>
             </div>
             
             <div v-if="loading" class="mt-6 mb-4 text-[10px] md:text-xs text-yellow-500 animate-pulse font-bold tracking-widest uppercase">
-                Synchronizing Cloud Data...
+                Loading Data...
             </div>
             <div v-else class="mt-6 mb-4 text-[10px] md:text-xs text-white/20 font-bold tracking-widest uppercase">
-                最後更新時間: {{ lastUpdated }}
+                資料最後更新時間: {{ lastUpdated }}
             </div>
 
             <div class="flex space-x-4 mb-6">
@@ -144,6 +144,7 @@
 
     <script>
         const { createApp, ref, onMounted } = Vue;
+        // 以下為試算表連結
         const TEAM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5GX2RO0zfoMMr6Sm3zOhmXm1ZvLiHCLype4XVI6sj6RL7VdLDFtHd-3zpwPmE8x2KGaSFysEYWYFB/pub?output=csv';
         const MATCH_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP1qGTwLgLVQhL-uXLdNnvAOVwYSUj5S1qmNMoCCuefRSfstoQQW9lPR80BNok9_pYjvHu90SyG96t/pub?output=csv';
 
@@ -156,6 +157,7 @@
                 const matches = ref([]);
                 const lastUpdated = ref('--:--:--');
 
+                // 加入快取避讓 (Cache Buster)，確保手動重整時能抓到最新版
                 const loadCSV = (url) => {
                     const cacheBuster = `&t=${new Date().getTime()}`;
                     return new Promise((resolve, reject) => {
@@ -209,9 +211,9 @@
                 const getTeamName = (id) => teams.value.find(t => t.id === parseInt(id))?.name || '??';
                 const sortedGroup = (g) => [...teams.value].filter(t => t.group === g).sort((a, b) => (b.wins*3+b.draws) - (a.wins*3+a.draws) || b.sw - a.sw || a.sl - b.sl);
                 
+                // 僅在開啟網頁時執行一次，不設定 setInterval
                 onMounted(() => { 
                     fetchData(); 
-                    setInterval(fetchData, 30000); 
                 });
 
                 return { currentTab, matchGroup, loading, lastUpdated, teams, matches, getTeamName, sortedGroup };
