@@ -18,44 +18,48 @@
         .row-bg { background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
         .score-font { font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 900; }
         
-        /* LIVE Icon 閃爍效果 */
-        .live-icon { display: inline-flex; align-items: center; background: #FF0000; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 900; vertical-align: middle; margin-left: 8px; margin-top: -10px; }
-        .live-dot { width: 6px; height: 6px; background: white; border-radius: 50%; margin-right: 4px; animation: blink 1.2s infinite; }
+        /* LIVE Icon 樣式 */
+        .live-row { display: flex; align-items: center; justify-content: center; margin-top: 8px; }
+        .live-icon { display: flex; align-items: center; background: #FF0000; color: white; padding: 2px 10px; border-radius: 4px; font-size: 14px; font-weight: 900; letter-spacing: 1px; }
+        .live-dot { width: 8px; height: 8px; background: white; border-radius: 50%; margin-right: 6px; animation: blink 1.2s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
 
-        /* 積分榜標頭放大 */
-        .table-header { font-size: 13px; font-weight: 900; letter-spacing: 0.05em; color: rgba(255, 255, 255, 0.6); }
+        /* 積分榜標頭 */
+        .table-header { font-size: 13px; font-weight: 900; letter-spacing: 0.05em; color: rgba(255, 255, 255, 0.5); }
         @media (min-width: 768px) { .table-header { font-size: 15px; } }
 
+        /* 響應式按鈕 */
         .tab-btn { padding: 12px 24px; border-radius: 99px; font-weight: 900; transition: all 0.3s; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); }
         .tab-active { background: #ffffff; color: #061121; border-color: #ffffff; }
         .tab-inactive { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.4); }
 
         .rank-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .rank-min-width { min-width: 400px; }
+        .rank-min-width { min-width: 440px; }
+        
+        /* 賽程日期時間強化 */
+        .match-time-label { font-size: 12px; font-weight: 900; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+        @media (min-width: 768px) { .match-time-label { font-size: 14px; } }
     </style>
 </head>
 <body class="pb-10 px-4 md:px-10">
     <div id="app">
         <header class="flex flex-col items-center pt-10 pb-6 text-center">
             <img src="logo.jpg" alt="UWIN" class="w-24 md:w-32 h-auto mb-6">
-            <div class="flex items-center">
-                <h1 class="header-title text-4xl md:text-7xl leading-none italic">2026 UWIN CUP</h1>
-                <div class="live-icon">
-                    <span class="live-dot"></span>LIVE
-                </div>
+            <h1 class="header-title text-4xl md:text-7xl leading-none italic">2026 UWIN CUP</h1>
+            <div class="live-row">
+                <div class="live-icon"><span class="live-dot"></span>LIVE</div>
             </div>
             
-            <div v-if="loading" class="mt-6 mb-6 text-[10px] md:text-xs text-yellow-500 animate-pulse font-bold tracking-widest uppercase">
+            <div v-if="loading" class="mt-8 mb-4 text-[10px] md:text-xs text-yellow-500 animate-pulse font-bold tracking-widest uppercase">
                 Synchronizing Cloud Data...
             </div>
-            <div v-else class="mt-6 mb-6 text-[10px] md:text-xs text-white/20 font-bold tracking-widest uppercase">
-                Last Update: {{ lastUpdated }}
+            <div v-else class="mt-8 mb-4 text-[10px] md:text-xs text-white/20 font-bold tracking-widest uppercase">
+                最後更新時間: {{ lastUpdated }}
             </div>
 
-            <div class="flex space-x-2 md:space-x-4 mb-6">
+            <div class="flex space-x-4 mb-8">
                 <button @click="currentTab = 'rank'" :class="currentTab === 'rank' ? 'tab-active' : 'tab-inactive'" class="tab-btn">分組積分榜</button>
-                <button @click="currentTab = 'matches'" :class="currentTab === 'matches' ? 'tab-active' : 'tab-inactive'" class="tab-btn">對戰賽程表</button>
+                <button @click="currentTab = 'matches'" :class="currentTab === 'matches' ? 'tab-active' : 'tab-inactive'" class="tab-btn">賽程表</button>
             </div>
         </header>
 
@@ -68,17 +72,17 @@
                         <div class="rank-min-width space-y-2">
                             <div class="flex px-2 table-header uppercase mb-3">
                                 <div class="w-10">#</div>
-                                <div class="flex-grow pl-4">Team</div>
-                                <div class="w-20 text-center">W-D-L</div>
-                                <div class="w-14 text-center">SW</div>
-                                <div class="w-14 text-center">SL</div>
-                                <div class="w-16 text-center">Pts</div>
+                                <div class="flex-grow pl-4">隊伍名稱</div>
+                                <div class="w-20 text-center">勝-平-敗</div>
+                                <div class="w-14 text-center">勝局</div>
+                                <div class="w-14 text-center">敗局</div>
+                                <div class="w-16 text-center">積分</div>
                             </div>
-                            <div v-for="(team, index) in sortedGroup(group)" :key="team.id" class="flex items-center row-bg px-2 md:px-4 h-[64px] rounded-lg">
+                            <div v-for="(team, index) in sortedGroup(group)" :key="team.id" class="flex items-center row-bg px-2 md:px-4 min-h-[64px] py-2 rounded-lg">
                                 <div class="w-10 text-center font-black text-2xl italic" :class="index < 4 ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/20'">{{ index + 1 }}</div>
                                 <div class="flex-grow flex items-center pl-4 overflow-hidden">
-                                    <span class="text-base md:text-xl font-bold truncate mr-2" :class="index < 4 ? 'text-white' : 'text-white/40'">{{ team.name }}</span>
-                                    <div class="ml-auto flex items-center text-white/30 italic font-bold">
+                                    <span class="text-base md:text-xl font-bold leading-tight mr-2" :class="index < 4 ? 'text-white' : 'text-white/40'">{{ team.name }}</span>
+                                    <div class="ml-auto flex items-center text-white/30 italic font-bold shrink-0">
                                         <span class="w-20 text-center text-[10px] md:text-[12px] font-mono">{{ team.wins }}-{{ team.draws }}-{{ team.losses }}</span>
                                         <span class="w-14 text-center text-[10px] md:text-[12px] font-mono">{{ team.sw }}</span>
                                         <span class="w-14 text-center text-[10px] md:text-[12px] font-mono">{{ team.sl }}</span>
@@ -89,18 +93,24 @@
                         </div>
                     </div>
 
-                    <div v-else class="space-y-3 md:space-y-4">
-                        <div v-for="match in matches.filter(m => m.group === group)" :key="match.id" class="row-bg p-4 md:p-6 flex items-center justify-between rounded-xl">
-                            <div class="w-[38%] text-right font-black text-sm md:text-xl leading-tight truncate">{{ getTeamName(match.t1Id) }}</div>
-                            <div class="flex flex-col items-center px-2 md:px-6 shrink-0">
-                                <span class="text-[8px] md:text-[10px] font-bold text-white/40 mb-2 tracking-tighter">{{ match.day }} {{ match.time }}</span>
-                                <div class="flex items-center space-x-3 md:space-x-5">
-                                    <div class="text-3xl md:text-5xl score-font italic" :class="Number(match.score1) > Number(match.score2) ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score1 }}</div>
-                                    <div class="text-[10px] text-white/5 font-black italic">VS</div>
-                                    <div class="text-3xl md:text-5xl score-font italic" :class="Number(match.score2) > Number(match.score1) ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score2 }}</div>
+                    <div v-else class="space-y-4 md:space-y-6">
+                        <div v-for="match in matches.filter(m => m.group === group)" :key="match.id" class="row-bg p-5 md:p-8 flex flex-col items-center rounded-xl">
+                            <div class="mb-5">
+                                <span class="match-time-label">{{ match.day }} {{ match.time }}</span>
+                            </div>
+                            <div class="flex items-center justify-center w-full max-w-2xl">
+                                <div class="w-1/3 text-center px-2">
+                                    <div class="text-base md:text-2xl font-black leading-tight">{{ getTeamName(match.t1Id) }}</div>
+                                </div>
+                                <div class="flex items-center justify-center px-4 md:px-10 shrink-0">
+                                    <div class="text-4xl md:text-6xl score-font italic" :class="Number(match.score1) > Number(match.score2) ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score1 }}</div>
+                                    <div class="mx-3 md:mx-6 text-[10px] md:text-xs text-white/10 font-black italic">VS</div>
+                                    <div class="text-4xl md:text-6xl score-font italic" :class="Number(match.score2) > Number(match.score1) ? (group==='A' ? 'uwin-text-a':'uwin-text-b') : 'text-white/10'">{{ match.score2 }}</div>
+                                </div>
+                                <div class="w-1/3 text-center px-2">
+                                    <div class="text-base md:text-2xl font-black leading-tight">{{ getTeamName(match.t2Id) }}</div>
                                 </div>
                             </div>
-                            <div class="w-[38%] text-left font-black text-sm md:text-xl leading-tight truncate">{{ getTeamName(match.t2Id) }}</div>
                         </div>
                     </div>
                 </section>
@@ -165,7 +175,11 @@
                     loading.value = false;
                 };
 
-                const getTeamName = (id) => teams.value.find(t => t.id === parseInt(id))?.name || '??';
+                const getTeamName = (id) => {
+                    const team = teams.value.find(t => t.id === parseInt(id));
+                    return team ? team.name : '??';
+                };
+
                 const sortedGroup = (g) => [...teams.value].filter(t => t.group === g).sort((a, b) => (b.wins*3+b.draws) - (a.wins*3+a.draws) || b.sw - a.sw || a.sl - b.sl);
 
                 onMounted(() => { fetchData(); setInterval(fetchData, 30000); });
